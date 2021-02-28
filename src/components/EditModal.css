@@ -1,0 +1,23 @@
+.ui.basic.modal{
+    background: #121212;
+}
+
+.ui.input>input {
+    background: #4d4d4d;
+    color: #fff;
+}
+
+.ui.input.focus>input, .ui.input>input:focus{
+    background: #646464;
+    border-color: #4d4d4d;
+    color: #fff;
+}
+
+.ui.input.focus>input, .ui.input>input:focus::-moz-selection { 
+    background: #fff; 
+    color: #4d4d4d;
+}
+.ui.input.focus>input, .ui.input>input:focus::selection { 
+    background: #fff; 
+    color: #4d4d4d;
+}
