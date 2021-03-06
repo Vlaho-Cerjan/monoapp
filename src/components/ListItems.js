@@ -25,6 +25,8 @@ class ListItems extends React.Component {
     constructor(data) {
         super(data);
 
+        this.dropdownRef = React.createRef();
+
         makeObservable(this, {
             data: observable,
             offset: observable,
@@ -39,15 +41,22 @@ class ListItems extends React.Component {
             sortedItems: action,
             filterBrand: action,
             setPageCount: action,
+            clearFilter: action
         })
         
         this.data = data;
         this.pageCount = this.data.vehicleModel.length/per_page;
     }
 
+    clearFilter = () => {
+        this.filter = "";
+        this.dropdownRef.current.clearValue();
+        this.setPageCount(this.props.vehicleModel);
+        this.loadElements();
+    }
+
     setPageCount = (data) => {
         this.pageCount = data.length/per_page;
-        console.log(this.pageCount);
     }
 
     setSortConfig = (data) => {
@@ -56,11 +65,12 @@ class ListItems extends React.Component {
     }
 
     filterBrand = (e, data) => {
-        this.filter = this.props.vehicleMake.find(make => make.id === data.value).name;
-        this.data.tempModel = this.props.vehicleModel.filter(model => model.makeId === data.value);
-        this.setPageCount(this.data.tempModel);
-        this.loadElements(true);
-        console.log(this.data.vehicleModel, this.filter)
+            if(data.value !== ""){
+                this.filter = this.props.vehicleMake.find(make => make.id === data.value).name;
+                this.data.tempModel = this.props.vehicleModel.filter(model => model.makeId === data.value);
+                this.setPageCount(this.data.tempModel);
+                this.loadElements(true);
+            }
     }
 
     sortedItems = () => {
@@ -183,18 +193,32 @@ class ListItems extends React.Component {
             value: make.id,
         })
         )
+        let button;
+        if(this.filter !== ""){
+            button = 
+            <Button onClick={() => this.clearFilter()}>
+                Clear filter
+            </Button>;
+        } else {
+            button = "";
+        }
         return (
             <div>
                 <Container textAlign="left">        
                     <Dropdown 
+                        id="brandDropdown"
+                        className="dropdown"
+                        ref={this.dropdownRef}
                         placeholder='Car Brand' 
                         search 
                         selection 
                         options={brandOptions} 
                         onChange={this.filterBrand}
                     />
+                    {button}
+                    
                 </Container>
-                <Divider clearing />
+                <Divider clearing section />
                 <Grid celled='internally' columns={5} verticalAlign="middle"> 
                     <Grid.Row>
                         <Grid.Column>
