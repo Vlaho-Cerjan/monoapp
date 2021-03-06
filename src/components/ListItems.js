@@ -27,6 +27,7 @@ class ListItems extends React.Component {
         super(data);
 
         this.dropdownRef = React.createRef();
+        this.paginateRef = React.createRef();
 
         makeObservable(this, {
             data: observable,
@@ -69,9 +70,13 @@ class ListItems extends React.Component {
         if(data.value !== ""){
             this.filter = this.props.vehicleMake.find(make => make.id === data.value).name;
             this.data.tempModel = this.props.vehicleModel.filter(model => model.makeId === data.value);
+            let pageClick = [];
+            pageClick.selected = 0;
             this.setPageCount(this.data.tempModel);
+            this.handlePageClick(pageClick);
             this.loadElements(true);
             this.sortedItems();
+            this.paginateRef.current.state.selected = 0;
         }
     }
 
@@ -290,6 +295,7 @@ class ListItems extends React.Component {
                     </Grid.Row>
                     {listItems}
                     <ReactPaginate
+                        ref={this.paginateRef}
                         previousLabel={'previous'}
                         nextLabel={'next'}
                         breakLabel={'...'}
@@ -298,6 +304,7 @@ class ListItems extends React.Component {
                         marginPagesDisplayed={2}
                         pageRangeDisplayed={5}
                         onPageChange={this.handlePageClick}
+                        pageClassName={'page'}
                         containerClassName={'pagination'}
                         subContainerClassName={'pages pagination'}
                         activeClassName={'active'}
