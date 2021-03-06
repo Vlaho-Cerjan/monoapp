@@ -184,8 +184,10 @@ class ListItems extends React.Component {
                 </Grid.Column>
                 <Grid.Column>
                     <EditModal 
+                        key = {vehicle.id}
                         make_id={vehicle.makeId} 
                         model_id={vehicle.id} 
+                        sortedItems={this.sortedItems}
                     ></EditModal>
                 </Grid.Column>
             </Grid.Row>

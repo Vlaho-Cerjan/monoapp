@@ -57,6 +57,8 @@ class EditModal extends React.Component {
             modelName: "",
             modelAbrv: ""
         });
+
+        this.props.sortedItems();
     }
 
     render() {
