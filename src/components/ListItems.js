@@ -1,12 +1,13 @@
 import React from 'react';
 import _ from 'lodash'
 import { observer } from "mobx-react"
-import { Grid, Button, Dropdown, Container, Divider } from 'semantic-ui-react'
-import ReactPaginate from 'react-paginate'
-import EditModal from './EditModal'
-import './ListItems.css'
 import { action, makeObservable, observable } from 'mobx'
 
+import { Grid, Button, Dropdown, Container, Divider, Icon} from 'semantic-ui-react'
+import ReactPaginate from 'react-paginate'
+import EditModal from './EditModal'
+
+import './ListItems.css'
 
 const per_page = 10;
 
@@ -48,10 +49,15 @@ class ListItems extends React.Component {
         this.pageCount = this.data.vehicleModel.length/per_page;
     }
 
-    clearFilter = () => {
-        this.filter = "";
-        this.dropdownRef.current.clearValue();
-        this.setPageCount(this.props.vehicleModel);
+    loadElements = (bool = false) => {
+        if(bool){
+            this.data.vehicleModel = this.data.tempModel.slice(this.offset, this.offset + per_page)
+        }else{
+            this.data.vehicleModel = this.props.vehicleModel.slice(this.offset, this.offset + per_page)
+        }
+    }
+
+    componentDidMount() {
         this.loadElements();
     }
 
@@ -59,20 +65,28 @@ class ListItems extends React.Component {
         this.pageCount = data.length/per_page;
     }
 
+    filterBrand = (e, data) => {
+        if(data.value !== ""){
+            this.filter = this.props.vehicleMake.find(make => make.id === data.value).name;
+            this.data.tempModel = this.props.vehicleModel.filter(model => model.makeId === data.value);
+            this.setPageCount(this.data.tempModel);
+            this.loadElements(true);
+            this.sortedItems();
+        }
+    }
+
+    clearFilter = () => {
+        this.filter = "";
+        this.dropdownRef.current.clearValue();
+        this.setPageCount(this.props.vehicleModel);
+        this.loadElements();
+    }
+
     setSortConfig = (data) => {
         this.sortConfig.key = data.key;
         this.sortConfig.direction = data.direction;
     }
-
-    filterBrand = (e, data) => {
-            if(data.value !== ""){
-                this.filter = this.props.vehicleMake.find(make => make.id === data.value).name;
-                this.data.tempModel = this.props.vehicleModel.filter(model => model.makeId === data.value);
-                this.setPageCount(this.data.tempModel);
-                this.loadElements(true);
-            }
-    }
-
+    
     sortedItems = () => {
         let sortableItems = [];
         if(this.filter === ""){
@@ -107,7 +121,6 @@ class ListItems extends React.Component {
                 }
 
                 sortableItems = sortedItems;
-                console.log(sortableItems);
             }else{
                 key = key.substring(key.length - 4);
                 sortableItems.sort((a, b) => {
@@ -126,7 +139,7 @@ class ListItems extends React.Component {
 
         this.loadElements(true);
     };
-      
+    
     requestSort = key => {
         let direction = 'ascending';
         if (this.sortConfig && this.sortConfig.key === key && this.sortConfig.direction === 'ascending') {
@@ -134,15 +147,7 @@ class ListItems extends React.Component {
         }
         this.setSortConfig({ key, direction });
         this.sortedItems();
-    }
-
-    loadElements = (bool = false) => {
-        if(bool){
-            this.data.vehicleModel = this.data.tempModel.slice(this.offset, this.offset + per_page)
-        }else{
-            this.data.vehicleModel = this.props.vehicleModel.slice(this.offset, this.offset + per_page)
-        }
-    }
+    }  
 
     handlePageClick = (data) => {
         let selected = data.selected;
@@ -153,10 +158,6 @@ class ListItems extends React.Component {
         }else{
             this.loadElements(true)
         }
-    }
-
-    componentDidMount() {
-        this.loadElements();
     }
 
     render() {
@@ -182,8 +183,10 @@ class ListItems extends React.Component {
                     {vehicle.abrv}
                 </Grid.Column>
                 <Grid.Column>
-                    <EditModal make_id={vehicle.makeId} model_id={vehicle.id} >
-                    </EditModal>
+                    <EditModal 
+                        make_id={vehicle.makeId} 
+                        model_id={vehicle.id} 
+                    ></EditModal>
                 </Grid.Column>
             </Grid.Row>
         )
@@ -196,11 +199,26 @@ class ListItems extends React.Component {
         let button;
         if(this.filter !== ""){
             button = 
-            <Button onClick={() => this.clearFilter()}>
-                Clear filter
-            </Button>;
+                <Button 
+                    onClick={() => this.clearFilter()}
+                >
+                    Clear filter
+                </Button>;
         } else {
             button = "";
+        }
+
+        let dir;
+        if(this.sortConfig.direction === "ascending"){
+            dir = 
+                <Icon 
+                    name="long arrow alternate up"
+                />;
+        }else if(this.sortConfig.direction === "descending"){
+            dir =
+                <Icon
+                    name="long arrow alternate down"
+                />
         }
         return (
             <div>
@@ -227,8 +245,9 @@ class ListItems extends React.Component {
                                 onClick={() => this.requestSort('make_name')}
                                 className={getClassNamesFor('make_name')}
                             >
-                                Name
-                            </Button>
+                                Name 
+                                {this.sortConfig.key === "make_name"? dir : ""}
+                                </Button>
                         </Grid.Column>
                         <Grid.Column>
                             <Button 
@@ -237,6 +256,7 @@ class ListItems extends React.Component {
                                 className={getClassNamesFor('make_abrv')}
                             >
                                 Name Abbreviation
+                                {this.sortConfig.key === "make_abrv"? dir : ""}
                             </Button>
                         </Grid.Column>
                         <Grid.Column>
@@ -244,8 +264,9 @@ class ListItems extends React.Component {
                                 compact
                                 onClick={() => this.requestSort('model_name')}
                                 className={getClassNamesFor('model_name')}
-                            >
+                                >
                                 Model Name
+                                {this.sortConfig.key === "model_name"? dir : ""}
                             </Button>
                         </Grid.Column>
                         <Grid.Column>
@@ -255,9 +276,15 @@ class ListItems extends React.Component {
                                 className={getClassNamesFor('model_abrv')}
                             >
                                 Model Name
+                                {this.sortConfig.key === "model_abrv"? dir : ""}
                             </Button>
                         </Grid.Column>
-                        <Grid.Column>Edit</Grid.Column>
+                        <Grid.Column>
+                            <Icon 
+                                name="edit outline" 
+                                size="big"
+                            />
+                        </Grid.Column>
                     </Grid.Row>
                     {listItems}
                     <ReactPaginate

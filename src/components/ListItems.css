@@ -30,3 +30,8 @@
 #brandDropdown{
   margin-right: 16px;
 }
+
+.arrow{
+  margin-left: 5px !important;
+  margin-right: 0 !important;
+}

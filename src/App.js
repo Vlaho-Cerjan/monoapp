@@ -1,13 +1,18 @@
-import './App.css';
 import { VehicleMake, VehicleModel } from './common/VehicleStore';
-import ListItems from './components/ListItems';
+
 import MainLayout from './layouts/MainLayout';
+import ListItems from './components/ListItems';
+
+import './App.css';
 
 function App() {
   return (
     <div className="App">
       <MainLayout>
-        <ListItems vehicleMake={VehicleMake} vehicleModel={VehicleModel} />
+        <ListItems 
+          vehicleMake={VehicleMake} 
+          vehicleModel={VehicleModel} 
+        />
       </MainLayout>
     </div>
   );
