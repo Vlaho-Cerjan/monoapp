@@ -1,3 +1,4 @@
+import { action, makeObservable, observable } from 'mobx';
 import React from 'react'
 import { Button, Header, Icon, Modal, Input, Grid } from 'semantic-ui-react'
 import { VehicleMake, VehicleModel } from '../common/VehicleStore';
@@ -5,8 +6,15 @@ import './EditModal.css'
 
 
 class EditModal extends React.Component {
-    constructor(props) {
-        super(props);
+    data = [];
+
+    constructor(data) {
+        super(data);
+
+        makeObservable(this, {
+            data: observable,
+            editData: action,
+        })
     
         this.state = {
           open: false,
@@ -15,6 +23,8 @@ class EditModal extends React.Component {
           modelName: "",
           modelAbrv: ""
         };
+
+        
       }
 
 
