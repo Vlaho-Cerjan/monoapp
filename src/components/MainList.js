@@ -262,13 +262,12 @@ class MainList extends React.Component {
                 this.isReadOnly.data.push({id: id, state: true})
             }
             this.createDropRef.current.clearValue()
-            if(this.tempLoadData.find(temp => temp.makeId === this.data.vehicleStore.models.find(m => m.name === this.formData.model_name).makeId)) {
-            this.tempLoadData.push(this.data.vehicleStore.models.find(m => m.name === this.formData.model_name))
-            this.data.tempModel = this.data.vehicleStore.sortItems(this.tempLoadData);
-            this.pageCount = this.data.tempModel.length/per_page;
+            if(this.tempLoadData.find(temp => temp.makeId === this.data.vehicleStore.models.find(m => m.name === this.formData.model_name).makeId) || this.data.vehicleStore.filter === "") {
+                this.tempLoadData.push(this.data.vehicleStore.models.find(m => m.name === this.formData.model_name))
+                this.data.tempModel = this.data.vehicleStore.sortItems(this.tempLoadData);
+                this.pageCount = this.data.tempModel.length/per_page;
             }
             this.loadElements(true);
-            console.log(this.pageCount, this.data.tempModel.length)
         }
 
         this.createNameRef.current.inputRef.current.value = ""
@@ -476,7 +475,6 @@ class MainList extends React.Component {
                                 className={this.isReadOnly.data.find(data => data.id === vehicle.id).state ? "grid-input make_name readOnly" : "grid-input make_name"}
                                 onChange={(e, data) => {
                                     this.formData.make_id = data.value
-                                    console.log(this.formData)
                                 }}
                             />
                         </Grid.Column>
@@ -715,7 +713,6 @@ class MainList extends React.Component {
                                     className="grid-input make_name"
                                     onChange={(e, data) => {
                                         this.formData.make_id = data.value
-                                        console.log(this.formData)
                                     }}
                                 />
                             </Grid.Column>
