@@ -1,0 +1,36 @@
+.sidebar-container{
+    position: absolute;
+    top: 16px;
+    left: 16px;
+}
+
+.sidebar-container .ui.list{
+    padding: 12px 8px !important;
+}
+
+.sidebar-container .ui.list-item{
+    height: 32px;
+}
+
+.sidebar-container .icon:before{
+    opacity: 0.8 !important;
+}
+
+.sidebar-container .menu-link{
+    display: inline-block;
+    color: white;
+    opacity: 0.8;
+    min-width: 120px;
+    text-align: left;
+    font-size: 1.2em;
+    vertical-align: bottom;
+}
+
+.sidebar-container .content{
+    cursor: pointer;
+}
+
+.sidebar-container .item:hover .menu-link, 
+.sidebar-container .item:hover .icon:before{
+    opacity: 1 !important;
+}

@@ -1,0 +1,5 @@
+[
+    {"id": 1, "name": "BMW", "abrv": "BMW"},
+    {"id": 2, "name": "Ford", "abrv": "Ford"},
+    {"id": 3, "name": "Volkswagen", "abrv": "VW"}
+]
