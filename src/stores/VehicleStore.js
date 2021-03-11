@@ -142,8 +142,13 @@ const VehicleStore = types
     }))
     .actions((self) => ({
         addMake(name, abrv) {
-            const id = self.makes.reduce((maxId, make) => Math.max(make.id, maxId), -1) + 1
-            self.makes.unshift({ id, name, abrv })
+            if(!self.makes.find(m => m.name === name) && name.length && abrv.length ){
+                const id = self.makes.reduce((maxId, make) => Math.max(make.id, maxId), -1) + 1
+                self.makes.unshift({ id, name, abrv })
+                return id
+            }else{
+                console.log('Duplicate Data')
+            } 
         },
         removeMake(make) {
             destroy(make)

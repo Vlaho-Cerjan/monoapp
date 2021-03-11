@@ -1,9 +1,9 @@
-import TestList from '../components/TestList'
+import MainList from '../components/MainList'
 
 function VehicleMake() {
     return (
       <div>
-        <TestList isMakePage={true} />
+        <MainList isMakePage={true} />
       </div>
     )
   }

@@ -1,10 +1,10 @@
-import TestList from '../components/TestList'
+import MainList from '../components/MainList'
 
 function HomePage(props) {
     console.log(props)
     return (
         <div>
-            <TestList />
+            <MainList />
         </div>
     )
 }

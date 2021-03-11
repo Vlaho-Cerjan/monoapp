@@ -1,9 +1,9 @@
-import TestList from '../components/TestList'
+import MainList from '../components/MainList'
 
 function VehicleModel() {
     return (
       <div>
-        <TestList isModelPage={true} />
+        <MainList isModelPage={true} />
       </div>
     )
   }
