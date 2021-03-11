@@ -35,24 +35,31 @@
   margin-left: 5px !important;
   margin-right: 0 !important;
 }
+.ui.disabled.grid-input.dropdown, .ui.grid-input.dropdown .menu>.disabled.item{
+  opacity: 1 !important;
+}
 
-.grid-input input{
+.ui.disabled.grid-input.dropdown .icon{
+  display: none;
+}
+
+.grid-input input, .grid-input.selection, .grid-input .item{
   text-align: center !important;
 }
 
-.grid-input input::selection{
+.grid-input input::selection, .grid-input.selection::selection, .grid-input .item::selection{
   background: #121212;
   color: #fff;
 }
 
-.grid-input.readOnly input{
+.grid-input.readOnly input, .grid-input.selection.readOnly{
   background: transparent !important;
   color: #fff !important;
   text-align: center !important;
   border: none !important;
 }
 
-.grid-input.readOnly input:focus, .grid-input.readOnly input:hover{
+.grid-input.readOnly input:focus, .grid-input.readOnly input:hover, .grid-input.selection.readOnly{
   outline: none !important; 
   border: none !important;
 }

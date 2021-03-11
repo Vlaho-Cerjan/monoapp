@@ -19,7 +19,8 @@ import {
     Container,
     Divider, 
     Icon,
-    Input
+    Input,
+    Select
 } from 'semantic-ui-react'
 
 import ReactPaginate from 'react-paginate'
@@ -37,11 +38,15 @@ class TestList extends React.Component {
         data: []
     }
     formData = {
+        make_id: 0,
         make_name: "",
         make_abrv: "",
         model_name: "",
         model_abrv: ""
     }
+    inputRefs = []
+    nameRefs = []
+    abrvRefs = []
 
 
     constructor(data) {
@@ -59,17 +64,22 @@ class TestList extends React.Component {
             columnCount: observable,
             isReadOnly: observable,
             formData: observable,
+            inputRefs: observable,
+            nameRefs: observable,
+            abrvRefs: observable,
             loadElements: action,
             handlePageClick: action,
             filterBrand: action,
             clearFilter: action,
             setColumnCount: action,
             requestSort: action,
-            onInputChange: action,
             onEditClick: action,
             resetFormData: action,
             onCancelClick: action,
             editData: action,
+            setRef: action,
+            setNameRef: action,
+            setAbrvRef: action
         })
         
         this.data = data
@@ -164,12 +174,9 @@ class TestList extends React.Component {
         this.columnCount = count
     }
 
-    onInputChange = (e, data) => {
-        console.log(e, data, this.formData)
-    }
-
     resetFormData = () => {
         this.formData = {
+            make_id: "",
             make_name: "",
             make_abrv: "",
             model_name: "",
@@ -183,15 +190,40 @@ class TestList extends React.Component {
         this.resetFormData()
     }
 
-    onCancelClick = () => {
+    onCancelClick = (id, makeId) => {
         this.isReadOnly.data.map((data) => data.state = true)
         this.resetFormData()
+        this.inputRefs = this.inputRefs.filter(ref => ref !== null)
+        if(!this.props.isMakePage){
+            this.inputRefs[id].state.value = makeId
+        }
+        this.nameRefs[id].inputRef.current.value = this.nameRefs[id].props.defaultValue
+        this.abrvRefs[id].inputRef.current.value = this.abrvRefs[id].props.defaultValue
     }
 
     editData = (id) => {
-        this.data.vehicleStore.makes.find(m => m.id === id).edit(this.formData.make_name, this.formData.make_abrv)
+        if(this.props.isMakePage){
+            this.data.vehicleStore.makes.find(m => m.id === id).edit(this.formData.make_name, this.formData.make_abrv)
+        }else{
+            this.data.vehicleStore.models.find(m => m.id === id).edit(this.formData.make_id, this.formData.model_name, this.formData.model_abrv)
+        }
         this.isReadOnly.data.map((data) => data.state = true)
         this.resetFormData()
+        if(this.props.isMakePage) this.data.tempModel = this.data.vehicleStore.sortMakes() 
+        else this.data.tempModel = this.data.vehicleStore.sortItems(this.data.tempModel)
+        this.loadElements(true);
+    }
+
+    setRef = (ref) => {
+        this.inputRefs.push(ref)
+    };
+
+    setNameRef = (ref) => {
+        this.nameRefs.push(ref)
+    }
+
+    setAbrvRef = (ref) => {
+        this.abrvRefs.push(ref)
     }
 
     render() {
@@ -258,8 +290,6 @@ class TestList extends React.Component {
         }
 
         let listItems = "";
-
-            
         if(this.props.isMakePage){
             this.setColumnCount(3)
             listItems = [
@@ -277,10 +307,11 @@ class TestList extends React.Component {
                         />
                     </Grid.Column>
                 </Grid.Row>,
-                this.tempLoadData.map((make) =>
+                this.tempLoadData.map((make, index) =>
                     <Grid.Row key={make.id}>
                         <Grid.Column>
                             <Input 
+                                ref={this.setNameRef}
                                 defaultValue={make.name}
                                 readOnly={this.isReadOnly.data.find(data => data.id === make.id).state}
                                 className={this.isReadOnly.data.find(data => data.id === make.id).state ? "grid-input make_name readOnly" : "grid-input make_name"}
@@ -291,6 +322,7 @@ class TestList extends React.Component {
                         </Grid.Column>
                         <Grid.Column>
                             <Input 
+                                ref={this.setAbrvRef}
                                 defaultValue={make.abrv}
                                 readOnly={this.isReadOnly.data.find(data => data.id === make.id).state}
                                 className={this.isReadOnly.data.find(data => data.id === make.id).state ? "grid-input make_abrv readOnly" : "grid-input make_abrv"}
@@ -308,7 +340,7 @@ class TestList extends React.Component {
                                 </Button>
                                 <Button
                                     color="google plus"
-                                    onClick={() => this.onCancelClick()}
+                                    onClick={() => this.onCancelClick(index)}
                                 >
                                     X
                                 </Button>
@@ -368,22 +400,69 @@ class TestList extends React.Component {
                         />
                     </Grid.Column>
                 </Grid.Row>,
-                this.tempLoadData.map((vehicle) =>
+                this.tempLoadData.map((vehicle, index) =>
                     <Grid.Row key={vehicle.id}>
                         <Grid.Column>
-                        {this.tempMakeData.find(make => make.id === vehicle.makeId).name}
+                            <Dropdown 
+                                className="dropdown"
+                                placeholder='Select Brand' 
+                                selection 
+                                ref={this.setRef}
+                                options={brandOptions} 
+                                defaultValue={vehicle.makeId}
+                                disabled={this.isReadOnly.data.find(data => data.id === vehicle.id).state}
+                                className={this.isReadOnly.data.find(data => data.id === vehicle.id).state ? "grid-input make_name readOnly" : "grid-input make_name"}
+                                onChange={(e, data) => {
+                                    this.formData.make_id = data.value
+                                    console.log(this.formData)
+                                }}
+                            />
                         </Grid.Column>
                         <Grid.Column>
-                            {vehicle.name}
+                            <Input 
+                                ref={this.setNameRef}
+                                defaultValue={vehicle.name}
+                                readOnly={this.isReadOnly.data.find(data => data.id === vehicle.id).state}
+                                className={this.isReadOnly.data.find(data => data.id === vehicle.id).state ? "grid-input model_name readOnly" : "grid-input model_name"}
+                                onChange={(e, data) => {
+                                    this.formData.model_name = data.value
+                                }}
+                            />
                         </Grid.Column>
                         <Grid.Column>
-                            {vehicle.abrv}
+                            <Input 
+                                ref={this.setAbrvRef}
+                                defaultValue={vehicle.abrv}
+                                readOnly={this.isReadOnly.data.find(data => data.id === vehicle.id).state}
+                                className={this.isReadOnly.data.find(data => data.id === vehicle.id).state ? "grid-input model_name readOnly" : "grid-input model_name"}
+                                onChange={(e, data) => {
+                                    this.formData.model_abrv = data.value
+                                }}
+                            />
                         </Grid.Column>
-                        <Grid.Column>
-                            <Button>
-                                Edit
-                            </Button>
-                        </Grid.Column>
+                        {!this.isReadOnly.data.find(data => data.id === vehicle.id).state ? 
+                            <Grid.Column>
+                                <Button
+                                    onClick={() => this.editData(vehicle.id)}
+                                >
+                                    Confirm
+                                </Button>
+                                <Button
+                                    color="google plus"
+                                    onClick={() => this.onCancelClick(index, vehicle.makeId)}
+                                >
+                                    X
+                                </Button>
+                            </Grid.Column>
+                            : 
+                            <Grid.Column>
+                                <Button
+                                    onClick={() => this.onEditClick(vehicle.id)}
+                                >
+                                    Edit
+                                </Button>
+                            </Grid.Column>
+                        }
                     </Grid.Row>
                 )
             ]

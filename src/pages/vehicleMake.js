@@ -3,7 +3,7 @@ import TestList from '../components/TestList'
 function VehicleMake() {
     return (
       <div>
-        <TestList isMakePage />
+        <TestList isMakePage={true} />
       </div>
     )
   }

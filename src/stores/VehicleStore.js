@@ -12,10 +12,10 @@ const VehicleMake = types
     })
     .actions((self) => ({
         remove() {
-            getRoot(self).removeModel(self)
+            getRoot(self).removeMake(self)
         },
         edit(name, abrv) {
-            if (!name.length && !abrv.length) self.remove()
+            if (!name.length && !abrv.length) console.log("No Data")
             else {
                 if(name.length) self.name = name
                 if(abrv.length) self.abrv = abrv
@@ -32,12 +32,12 @@ const VehicleModel = types
     })
     .actions((self) => ({
         remove() {
-            getRoot(self).removeMake(self)
+            getRoot(self).removeModel(self)
         },
         edit(makeId, name, abrv) {
-            if ((!name.length && !abrv.length) || !makeId.length) self.remove()
+            if (!name.length && !abrv.length && !makeId) console.log("No Data")
             else {
-                self.makeId = makeId
+                if(makeId) self.makeId = makeId
                 if(name.length) self.name = name
                 if(abrv.length) self.abrv = abrv
             }

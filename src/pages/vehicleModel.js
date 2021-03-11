@@ -3,7 +3,7 @@ import TestList from '../components/TestList'
 function VehicleModel() {
     return (
       <div>
-        <TestList isModelPage />
+        <TestList isModelPage={true} />
       </div>
     )
   }
