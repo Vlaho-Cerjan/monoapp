@@ -1,8 +1,7 @@
 import { useMemo } from 'react'
-import { getRoot, types, applySnapshot, getSnapshot  } from 'mobx-state-tree'
+import { getRoot, types, applySnapshot, getSnapshot, getParent  } from 'mobx-state-tree'
 
 let store
-let per_page = 10
 
 const VehicleMake = types
     .model({
@@ -12,7 +11,7 @@ const VehicleMake = types
     })
     .actions((self) => ({
         remove() {
-            getRoot(self).removeMake(self)
+            getParent(self).remove(self)
         },
         edit(name, abrv) {
             if (!name.length && !abrv.length) console.log("No Data")
@@ -32,7 +31,7 @@ const VehicleModel = types
     })
     .actions((self) => ({
         remove() {
-            getRoot(self).removeModel(self)
+            getParent(self).remove(self)
         },
         edit(makeId, name, abrv) {
             if (!name.length && !abrv.length && !makeId) console.log("No Data")
@@ -59,7 +58,7 @@ const VehicleStore = types
     .model({
         makes: types.array(VehicleMake),
         models: types.array(VehicleModel),
-        make: types.reference(VehicleMake),
+        make: types.maybe(types.reference(VehicleMake)),
         model: types.reference(VehicleModel),
         filter: types.string,
         offset: types.integer,
@@ -149,18 +148,13 @@ const VehicleStore = types
                 console.log('Duplicate Data')
             } 
         },
-        removeMake(make) {
-            destroy(make)
-        },
         addModel(makeId, name, abrv) {
             const id = self.models.reduce((maxId, model) => Math.max(model.id, maxId), -1) + 1
             self.models.unshift({ id, makeId, name, abrv })
         },
-        removeModel(model) {
-            destroy(model)
-        },
         setMake(id){
-            self.make = self.makes.find(make => make.id === id)
+            if(id === 0) self.make = self.makes[0]
+            else self.make = self.makes.find(m => m.id === id)
         },
         setFilter(id){
             if (id===0) self.filter = ""
@@ -168,7 +162,18 @@ const VehicleStore = types
         },
         setOffset(offset){
             self.offset = offset
-        } 
+        },
+        removeMake(id){
+            if(self.make.id === id) self.make = self.makes.find(m => m.id !== id)
+            self.makes.find(m => m.id === id).remove()
+            self.models.map((model) => {
+                if(model.makeId === id) model.remove()
+            })
+        },
+        removeModel(id){
+            if(self.model.id === id) self.model = self.models.find(m => m.id !== id)
+            self.models.find(m => m.id === id).remove()
+        }
     }))
 
     export function initializeStore(snapshot = null) {

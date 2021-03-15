@@ -1,7 +1,6 @@
 import MainList from '../components/MainList'
 
-function HomePage(props) {
-    console.log(props)
+function HomePage() {
     return (
         <div>
             <MainList />

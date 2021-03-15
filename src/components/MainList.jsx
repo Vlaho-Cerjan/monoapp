@@ -19,8 +19,7 @@ import {
     Container,
     Divider, 
     Icon,
-    Input,
-    Select
+    Input
 } from 'semantic-ui-react'
 
 import ReactPaginate from 'react-paginate'
@@ -89,6 +88,7 @@ class MainList extends React.Component {
             closeCreate: action,
             createData: action,
             onCancelCreate: action,
+            deleteData: action
         })
         
         this.data = data
@@ -107,11 +107,11 @@ class MainList extends React.Component {
                 this.isReadOnly.data.push({id: data.id, state: true})
             )
         }
-        this.data.vehicleStore.setMake(1)
+        this.data.vehicleStore.setMake(0)
         this.data.vehicleStore.setFilter(0)
         this.data.vehicleStore.setOffset(0)
         this.data.dataCount = this.tempLoadData.length
-        this.data.tempModel = this.tempLoadData
+        this.data.tempModel = [...this.tempLoadData]
         this.isCreateOpen = false
     }
     
@@ -125,9 +125,9 @@ class MainList extends React.Component {
             }
         } else {
             if(bool){
-                this.tempLoadData = this.data.tempModel
+                this.tempLoadData = this.data.tempModel.slice(this.data.vehicleStore.offset, this.data.vehicleStore.offset + per_page)
             }else{
-                this.tempLoadData = this.data.vehicleStore.makes
+                this.tempLoadData = this.data.vehicleStore.makes.slice(this.data.vehicleStore.offset, this.data.vehicleStore.offset + per_page)
             }
             
         }
@@ -208,14 +208,15 @@ class MainList extends React.Component {
         if(!this.props.isMakePage){
             this.inputRefs[id].state.value = makeId
         }
-        this.nameRefs[id].inputRef.current.value = this.nameRefs[id].props.defaultValue
-        this.abrvRefs[id].inputRef.current.value = this.abrvRefs[id].props.defaultValue
+        if(this.nameRefs[id]) this.nameRefs[id].inputRef.current.value = this.nameRefs[id].props.defaultValue
+        if(this.abrvRefs[id]) this.abrvRefs[id].inputRef.current.value = this.abrvRefs[id].props.defaultValue
     }
 
     editData = (id) => {
         if(this.props.isMakePage){
             this.data.vehicleStore.makes.find(m => m.id === id).edit(this.formData.make_name, this.formData.make_abrv)
         }else{
+            if(this.data.vehicleStore.filter !== "" && this.data.vehicleStore.models.find(m => m.id === id).makeId !== this.formData.make_id) this.data.tempModel = this.data.tempModel.filter(item => item.id !== id)
             this.data.vehicleStore.models.find(m => m.id === id).edit(this.formData.make_id, this.formData.model_name, this.formData.model_abrv)
         }
         this.isReadOnly.data.map((data) => data.state = true)
@@ -266,12 +267,16 @@ class MainList extends React.Component {
                 this.tempLoadData.push(this.data.vehicleStore.models.find(m => m.name === this.formData.model_name))
                 this.data.tempModel = this.data.vehicleStore.sortItems(this.tempLoadData);
                 this.pageCount = this.data.tempModel.length/per_page;
+            }else if(this.tempLoadData.length === 0){
+                this.tempLoadData.push(this.data.vehicleStore.models.find(m => m.name === this.formData.model_name))
+                this.data.tempModel = this.data.vehicleStore.sortItems(this.tempLoadData);
             }
+            
             this.loadElements(true);
         }
 
-        this.createNameRef.current.inputRef.current.value = ""
-        this.createAbrvRef.current.inputRef.current.value = ""
+        if(this.createNameRef.current) this.createNameRef.current.inputRef.current.value = ""
+        if(this.createAbrvRef.current) this.createAbrvRef.current.inputRef.current.value = ""
         this.resetFormData()
         this.isCreateOpen = false
 
@@ -283,8 +288,21 @@ class MainList extends React.Component {
         this.isCreateOpen = false
         if(this.props.isModelPage) this.createDropRef.current.clearValue()
  
-        this.createNameRef.current.inputRef.current.value = ""
-        this.createAbrvRef.current.inputRef.current.value = ""
+        if(this.createNameRef.current) this.createNameRef.current.inputRef.current.value = ""
+        if(this.createAbrvRef.current) this.createAbrvRef.current.inputRef.current.value = ""
+    }
+
+    deleteData = (id) => {
+        if(this.props.isMakePage) {
+            this.data.vehicleStore.removeMake(id)
+        }
+        else {
+            this.data.vehicleStore.removeModel(id)
+        }   
+
+        this.loadElements();
+        this.tempMakeData = [...this.data.vehicleStore.makes]
+        this.tempModelData = [...this.data.vehicleStore.models]
     }
 
     render() {
@@ -352,7 +370,7 @@ class MainList extends React.Component {
 
         let listItems = "";
         if(this.props.isMakePage){
-            this.setColumnCount(3)
+            this.setColumnCount(4)
             listItems = [
                 <Grid.Row key="header">
                     <Grid.Column>
@@ -364,6 +382,12 @@ class MainList extends React.Component {
                     <Grid.Column>
                         <Icon 
                             name='edit outline'
+                            size='large'
+                        />
+                    </Grid.Column>
+                    <Grid.Column>
+                        <Icon 
+                            name='trash alternate'
                             size='large'
                         />
                     </Grid.Column>
@@ -415,13 +439,20 @@ class MainList extends React.Component {
                                 </Button>
                             </Grid.Column>
                         }
+                        <Grid.Column>
+                            <Button
+                                onClick={() => this.deleteData(make.id)}
+                            >
+                                Delete
+                            </Button>
+                        </Grid.Column>
                             
                         
                     </Grid.Row>
                 )           
             ]
         }else if(this.props.isModelPage){
-            this.setColumnCount(4)
+            this.setColumnCount(5)
             listItems = [
                 <Grid.Row key="header">
                     <Grid.Column>
@@ -457,6 +488,12 @@ class MainList extends React.Component {
                     <Grid.Column>
                         <Icon 
                             name='edit outline'
+                            size='large'
+                        />
+                    </Grid.Column>
+                    <Grid.Column>
+                        <Icon 
+                            name='trash alternate'
                             size='large'
                         />
                     </Grid.Column>
@@ -523,6 +560,13 @@ class MainList extends React.Component {
                                 </Button>
                             </Grid.Column>
                         }
+                        <Grid.Column>
+                            <Button
+                                onClick={() => this.deleteData(vehicle.id)}
+                            >
+                                Delete
+                            </Button>
+                        </Grid.Column>
                     </Grid.Row>
                 )
             ]

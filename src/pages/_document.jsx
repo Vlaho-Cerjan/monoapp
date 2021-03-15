@@ -10,8 +10,8 @@ class MyDocument extends Document {
         <Html>
             <Head />
             <body className='dark-theme'>
-            <Main />
-            <NextScript />
+              <Main />
+              <NextScript />
             </body>
         </Html>
     )
