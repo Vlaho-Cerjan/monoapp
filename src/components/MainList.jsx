@@ -47,7 +47,6 @@ class MainList extends React.Component {
     }
     inputRefs = []
     nameRefs = []
-    abrvRefs = []
     isCreateOpen = false
 
 
@@ -69,7 +68,6 @@ class MainList extends React.Component {
             formData: observable,
             inputRefs: observable,
             nameRefs: observable,
-            abrvRefs: observable,
             isCreateOpen: observable,
             loadElements: action,
             handlePageClick: action,
@@ -82,7 +80,6 @@ class MainList extends React.Component {
             editData: action,
             setRef: action,
             setNameRef: action,
-            setAbrvRef: action,
             openCreate: action,
             closeCreate: action,
             createData: action,
@@ -126,7 +123,6 @@ class MainList extends React.Component {
         let selected = data.selected;
         this.inputRefs = []
         this.nameRefs = []
-        this.abrvRefs = []
         this.data.store.setOffset(Math.ceil(selected * perPage));
         this.loadElements(true);
     }
@@ -201,10 +197,6 @@ class MainList extends React.Component {
 
     setNameRef = (ref) => {
         if(ref != null) this.nameRefs.push(ref)
-    }
-
-    setAbrvRef = (ref) => {
-        if(ref != null) this.abrvRefs.push(ref)
     }
 
     openCreate = () => {
