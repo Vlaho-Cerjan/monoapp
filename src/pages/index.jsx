@@ -9,27 +9,20 @@ import modelService from '../services/ModelService'
 
 class HomePage extends React.Component {
     render() {
-        const items = [ "Name", "Abbreviation", "Model Name", "Model Abbreviation"]
-        const itemKeys = ["makeName", "makeAbrv", "modelName", "modelAbrv"]
+        const items = [ 
+            {key: "makeName", title: "Name", type: 'input'},
+            {key: "makeAbrv", title: "Abbreviation", type: 'input'},
+            {key: "modelName", title: "Model Name", type: 'input'},
+            {key: "modelAbrv", title: "Model Abbreviation", type: 'input'}
+        ]
 
-        const brandOptions = []
-        const abrvOptions = []
-
-        makeService.getAllMakes(this.props.vehicleStore).filter(make => modelService.getAllModels(this.props.vehicleStore).filter(model => model.makeId === make.id).length > 0).map((make) => {
-                brandOptions.push({
-                    key: make.id,
-                    text: make.name,
-                    value: make.id
-                    }
-                )
-                abrvOptions.push({
-                    key: make.id,
-                    text: make.abrv,
-                    value: make.id
-                    }
-                )
+        const brandOptions = makeService.getAllMakes(this.props.vehicleStore).filter(make => modelService.getAllModels(this.props.vehicleStore).filter(model => model.makeId === make.id).length > 0).map((make) => {
+            return {    
+                key: make.id,
+                text: make.name,
+                value: make.id      
             }
-        )
+        })
         
         return (
             <div>
@@ -37,9 +30,7 @@ class HomePage extends React.Component {
                     store={this.props.vehicleStore}
                     listData={modelService.getListItems(this.props.vehicleStore)}
                     listItems={items}
-                    listKeys={itemKeys}
                     brandList={brandOptions}
-                    abrvOptions={abrvOptions}
                     columnCount={4}
                 />
             </div>

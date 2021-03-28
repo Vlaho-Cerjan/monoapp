@@ -98,7 +98,7 @@ class MainList extends React.Component {
         )
         this.data.store.setFilter(0)
         this.data.store.setOffset(0)
-        this.data.store.sortConfig.edit(this.data.listKeys.find(key => key !== 'id'), 'ascending')
+        this.data.store.sortConfig.edit(this.data.listItems.find(item => item.key !== 'id').key, 'ascending')
         this.tempLoadData = this.data.listData.slice(this.data.store.offset, this.data.store.offset + perPage)
         this.data.tempData = [...this.data.listData]
         this.isCreateOpen = false
@@ -358,7 +358,7 @@ class MainList extends React.Component {
         }
         let headerItems = [
             this.data.listItems.map((item, index) => {
-                if(item === "edit"){
+                if(item.key === "edit"){
                     return (
                         <Grid.Column key={index}>
                             <Icon 
@@ -368,7 +368,7 @@ class MainList extends React.Component {
                         </Grid.Column>
                     )
                 }
-                else if(item === "delete"){
+                else if(item.key === "delete"){
                     return (
                         <Grid.Column key={index}>
                             <Icon 
@@ -383,11 +383,11 @@ class MainList extends React.Component {
                         <Grid.Column key={index}>
                             <Button 
                                 compact
-                                onClick={() => this.requestSort(this.data.listKeys[index])}
-                                className={getClassNamesFor(this.data.listKeys[index])}
+                                onClick={() => this.requestSort(item.key)}
+                                className={getClassNamesFor(item.key)}
                             >
-                                {item} 
-                                {this.data.store.sortConfig.key === this.data.listKeys[index]? dir : ""}
+                                {item.title} 
+                                {this.data.store.sortConfig.key === item.key ? dir : ""}
                             </Button>
                         </Grid.Column>
                     )    
@@ -398,24 +398,23 @@ class MainList extends React.Component {
         let listItems = "";
         listItems = [
             this.tempLoadData.map((item, index) => {
-                let mainIndex = index
                 return(
                 <Grid.Row key={item.id}>
-                    {this.data.listKeys.map((key, ind) => {
-                        if((key === "makeName") && this.data.brandList){
+                    {this.data.listItems.map((listItem, ind) => {
+                        if(listItem.type === 'dropdown'){
                             return (
-                                <Grid.Column key={item.id+ind+key}>
+                                <Grid.Column key={item.id+ind+listItem.key}>
                                     <Dropdown 
                                         id={index}
                                         className="dropdown"
                                         placeholder='Select Brand' 
                                         selection 
                                         closeOnChange
-                                        ref={key === "makeName" ? this.setNameRef : this.setAbrvRef}
-                                        options={key === "makeName" ? this.data.brandList : this.data.abrvOptions} 
+                                        ref={this.setNameRef}
+                                        options={this.data.brandList} 
                                         defaultValue={this.data.brandList.find(brand => brand.key === item.makeId).value}
                                         disabled={this.isReadOnly.data.find(data => data.id === item.id).state}
-                                        className={this.isReadOnly.data.find(data => data.id === item.id).state ? "grid-input "+key+" readOnly" : "grid-input "+key}
+                                        className={this.isReadOnly.data.find(data => data.id === item.id).state ? "grid-input "+listItem.key+" readOnly" : "grid-input "+listItem.key}
                                         onChange={(e, data) => {
                                             this.formData.makeId = data.value
                                             this.inputRefs.find(ref => ref.props.id === index.toString()+"1").inputRef.current.value = this.data.store.makes.find(make => make.id === data.value).name
@@ -424,10 +423,10 @@ class MainList extends React.Component {
                                 </Grid.Column>
                             )
                         }
-                        else if(key === "edit"){
+                        else if(listItem.key === "edit"){
                             return(
                             !this.isReadOnly.data.find(data => data.id === item.id).state ? 
-                                <Grid.Column key={item.id+ind+key} >
+                                <Grid.Column key={item.id+ind+listItem.key} >
                                     <Button
                                         onClick={() => this.editData(item.id)}
                                     >
@@ -441,37 +440,37 @@ class MainList extends React.Component {
                                     </Button>
                                 </Grid.Column>
                                 : 
-                                <Grid.Column key={item.id+ind+key}>
+                                <Grid.Column key={item.id+ind+listItem.key}>
                                     <Button
                                         onClick={() => this.onEditClick(item.id)}
                                     >
-                                        Edit
+                                        {listItem.title}
                                     </Button>
                                 </Grid.Column>
                             
                             )
-                        }else if(key === "delete"){
+                        }else if(listItem.key === "delete"){
                             return (
-                                <Grid.Column key={item.id+ind+key}>
+                                <Grid.Column key={item.id+ind+listItem.key}>
                                     <Button
                                         onClick={() => this.deleteData(item.id)}
                                     >
-                                        Delete
+                                        {listItem.title}
                                     </Button>
                                 </Grid.Column>
                             )
                         }
-                        else{
+                        else if(listItem.type === 'input'){
                             return (
-                                <Grid.Column key={item.id+ind+key}>
+                                <Grid.Column key={item.id+ind+listItem.key}>
                                     <Input 
                                         id={index.toString()+ind}
                                         ref={this.setRef}
-                                        defaultValue={item[key]}
-                                        readOnly={key==="makeAbrv"? true : this.isReadOnly.data.find(data => data.id === item.id).state}
-                                        className={this.isReadOnly.data.find(data => data.id === item.id).state ? "grid-input "+key+" readOnly" : "grid-input "+key}
+                                        defaultValue={item[listItem.key]}
+                                        readOnly={listItem.key==="makeAbrv"? true : this.isReadOnly.data.find(data => data.id === item.id).state}
+                                        className={this.isReadOnly.data.find(data => data.id === item.id).state ? "grid-input "+listItem.key+" readOnly" : "grid-input "+listItem.key}
                                         onChange={(e, data) => {
-                                            this.formData[key] = data.value
+                                            this.formData[listItem.key] = data.value
                                         }}
                                     />
                                 </Grid.Column>
@@ -512,19 +511,18 @@ class MainList extends React.Component {
                     textAlign="center"    
                 >
                     <Grid.Row key="createRow">
-                        {this.data.listKeys.map((key, index) => {
-                            if(key==="edit" || key==="delete") return 
-                            if(key === "makeAbrv" && this.data.brandList) return
-                            if(key === "makeName" && this.data.brandList){
+                        {this.data.listItems.map((item, index) => {
+                            if(item.key === "makeAbrv" && this.data.brandList) return
+                            if(item.type === 'dropdown'){
                                 return(
-                                    <Grid.Column key={key+index}>
+                                    <Grid.Column key={item.key+index}>
                                         <Dropdown 
                                             className="dropdown"
-                                            placeholder={this.data.listItems[index]}
+                                            placeholder={item.title}
                                             selection 
                                             ref={this.createDropRef}
                                             options={this.data.brandList} 
-                                            className={"grid-input "+key}
+                                            className={"grid-input "+item.key}
                                             onChange={(e, data) => {
                                                 this.formData.makeId = data.value
                                             }}
@@ -532,15 +530,15 @@ class MainList extends React.Component {
                                     </Grid.Column>
                                 )
                             }
-                            else{
+                            else if(item.type === 'input'){
                                 return (
-                                    <Grid.Column key={key+index}>
+                                    <Grid.Column key={item.key+index}>
                                         <Input 
-                                            ref={(key==="makeName" || key==="modelName")?this.createNameRef:this.createAbrvRef}
-                                            placeholder={this.data.listItems[index]}
-                                            className={"grid-input "+key}
+                                            ref={(item.key==="makeName" || item.key==="modelName")?this.createNameRef:this.createAbrvRef}
+                                            placeholder={item.title}
+                                            className={"grid-input "+item.key}
                                             onChange={(e, data) => {
-                                                this.formData[key] = data.value
+                                                this.formData[item.key] = data.value
                                             }}
                                         />
                                     </Grid.Column>

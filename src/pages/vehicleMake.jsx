@@ -10,8 +10,13 @@ import { withAlert } from 'react-alert'
 
 class VehicleMake extends React.Component {
   render() { 
-    const items = [ "Name", "Abbreviation", "edit", "delete"]
-    const itemKeys = ["makeName", "makeAbrv", "edit", "delete"]
+
+    const items = [ 
+      {key: "makeName", title: "Name", type: 'input'},
+      {key: "makeAbrv", title: "Abbreviation", type: 'input'},
+      {key: "edit", title: "Edit", type: 'button'},
+      {key: "delete", title: "Delete", type: 'button'}
+    ]
 
     return (
         <div>
@@ -20,7 +25,6 @@ class VehicleMake extends React.Component {
             service={makeService}
             listData={makeService.getMakeList(this.props.vehicleStore)}
             listItems={items}
-            listKeys={itemKeys}
             columnCount={4}
             createColumnCount={3}
             alert={this.props.alert}

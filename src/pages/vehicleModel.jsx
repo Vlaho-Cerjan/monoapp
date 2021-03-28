@@ -11,23 +11,24 @@ import { withAlert } from 'react-alert'
 
 class VehicleModel extends React.Component {
   render(){
-    const items = [ "Name", "Abbreviation", "Model Name", "Model Abbreviation", "edit", "delete"]
-    const itemKeys = ["makeName", "makeAbrv", "modelName", "modelAbrv", "edit", "delete"]
 
+    const items = [ 
+      {key: "makeName", title: "Name", type: 'dropdown'},
+      {key: "makeAbrv", title: "Abbreviation", type: 'input'},
+      {key: "modelName", title: "Model Name", type: 'input'},
+      {key: "modelAbrv", title: "Model Abbreviation", type: 'input'},
+      {key: "edit", title: "Edit", type: 'button'},
+      {key: "delete", title: "Delete", type: 'button'}
+    ]
 
-    const brandOptions = makeService.getAllMakes(this.props.vehicleStore).map((make) => ({
-          key: make.id,
-          text: make.name,
-          value: make.id,
-      })
+    const brandOptions = makeService.getAllMakes(this.props.vehicleStore).map((make) => {
+          return {
+              key: make.id,
+              text: make.name,
+              value: make.id
+            }
+      }
     )
-
-    const abrvOptions = makeService.getAllMakes(this.props.vehicleStore).map((make) => ({
-      key: make.id,
-      text: make.abrv,
-      value: make.id
-  })
-  )
 
     return (
       <div>
@@ -35,9 +36,7 @@ class VehicleModel extends React.Component {
           service={modelService}
           listData={modelService.getListItems(this.props.vehicleStore)}
           listItems={items}
-          listKeys={itemKeys}
           brandList={brandOptions}
-          abrvOptions={abrvOptions}
           columnCount={6}
           createColumnCount={4}
           store={this.props.vehicleStore}
