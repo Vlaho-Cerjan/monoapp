@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { getRoot, types, applySnapshot, getSnapshot, getParent  } from 'mobx-state-tree'
+import { types, applySnapshot, getParent  } from 'mobx-state-tree'
 
 let store
 
@@ -144,6 +144,8 @@ const VehicleStore = types
             if(!self.makes.find(m => m.name === name) && name.length && abrv.length ){
                 const id = self.makes.reduce((maxId, make) => Math.max(make.id, maxId), -1) + 1
                 self.makes.unshift({ id, name, abrv })
+
+                return id
             }else{
                 console.log('Duplicate Data')
             } 
@@ -151,6 +153,8 @@ const VehicleStore = types
         addModel(makeId, name, abrv) {
             const id = self.models.reduce((maxId, model) => Math.max(model.id, maxId), -1) + 1
             self.models.unshift({ id, makeId, name, abrv })
+
+            return id
         },
         setMake(id){
             if(id === 0) self.make = self.makes[0]
@@ -221,8 +225,8 @@ const VehicleStore = types
             filter: "",
             offset: 0,
             sortConfig: {
-                key: "make_name",
-                direction: "ascending"
+                key: "",
+                direction: ""
             }
         })
       

@@ -24,12 +24,14 @@ import {
 
 import ReactPaginate from 'react-paginate'
 
-const per_page = 10;
+const perPage = 10;
+
+
+
 
 class MainList extends React.Component {
+    
     data = []
-    tempModelData = []
-    tempMakeData = []
     tempLoadData = []
     pageCount = 0
     columnCount = 0
@@ -37,11 +39,11 @@ class MainList extends React.Component {
         data: []
     }
     formData = {
-        make_id: 0,
-        make_name: "",
-        make_abrv: "",
-        model_name: "",
-        model_abrv: ""
+        makeId: 0,
+        makeName: "",
+        makeAbrv: "",
+        modelName: "",
+        modelAbrv: ""
     }
     inputRefs = []
     nameRefs = []
@@ -60,8 +62,6 @@ class MainList extends React.Component {
 
         makeObservable(this, {
             data: observable,
-            tempModelData: observable,
-            tempMakeData: observable,
             tempLoadData: observable,
             pageCount: observable,
             columnCount: observable,
@@ -75,7 +75,6 @@ class MainList extends React.Component {
             handlePageClick: action,
             filterBrand: action,
             clearFilter: action,
-            setColumnCount: action,
             requestSort: action,
             onEditClick: action,
             resetFormData: action,
@@ -92,45 +91,31 @@ class MainList extends React.Component {
         })
         
         this.data = data
-        this.tempMakeData = [...this.data.vehicleStore.makes]
-        this.tempModelData = [...this.data.vehicleStore.models]
-        this.tempLoadData = this.tempModelData
-        this.pageCount = this.tempModelData.length/per_page
-        if(this.props.isMakePage){
-            this.pageCount = this.tempMakeData.length/per_page
-            this.tempLoadData = this.tempMakeData
-            this.tempLoadData.map((data) => 
-                this.isReadOnly.data.push({id: data.id, state: true})
-            )
-        }else{
-            this.tempLoadData.map((data) => 
-                this.isReadOnly.data.push({id: data.id, state: true})
-            )
-        }
-        this.data.vehicleStore.setMake(0)
-        this.data.vehicleStore.setFilter(0)
-        this.data.vehicleStore.setOffset(0)
-        this.data.dataCount = this.tempLoadData.length
-        this.data.tempModel = [...this.tempLoadData]
+        this.columnCount = this.data.columnCount
+        this.pageCount = Math.ceil(this.data.listData.length/perPage)
+        this.data.listData.map((data) => 
+            this.isReadOnly.data.push({id: data.id, state: true})
+        )
+        this.data.store.setFilter(0)
+        this.data.store.setOffset(0)
+        this.data.store.sortConfig.edit(this.data.listKeys.find(key => key !== 'id'), 'ascending')
+        this.tempLoadData = this.data.listData.slice(this.data.store.offset, this.data.store.offset + perPage)
+        this.data.tempData = [...this.data.listData]
         this.isCreateOpen = false
     }
     
 
     loadElements = (bool = false) => {
-        if(!this.props.isMakePage){
-            if(bool){
-                this.tempLoadData = this.data.tempModel.slice(this.data.vehicleStore.offset, this.data.vehicleStore.offset + per_page)
-            }else{
-                this.tempLoadData = this.data.vehicleStore.models.slice(this.data.vehicleStore.offset, this.data.vehicleStore.offset + per_page)
-            }
-        } else {
-            if(bool){
-                this.tempLoadData = this.data.tempModel.slice(this.data.vehicleStore.offset, this.data.vehicleStore.offset + per_page)
-            }else{
-                this.tempLoadData = this.data.vehicleStore.makes.slice(this.data.vehicleStore.offset, this.data.vehicleStore.offset + per_page)
-            }
-            
+        if(bool){
+            this.tempLoadData = this.data.tempData.slice(this.data.store.offset, this.data.store.offset + perPage)
+        }else{
+            this.tempLoadData = this.data.listData.slice(this.data.store.offset, this.data.store.offset + perPage)
         }
+        
+    }
+
+    componentWillUnmount(){
+        if(this.data.alert) this.data.alert.removeAll()
     }
 
     componentDidMount() {
@@ -139,103 +124,87 @@ class MainList extends React.Component {
 
     handlePageClick = (data) => {
         let selected = data.selected;
-        this.data.vehicleStore.setOffset(Math.ceil(selected * per_page));
-
+        this.inputRefs = []
+        this.nameRefs = []
+        this.abrvRefs = []
+        this.data.store.setOffset(Math.ceil(selected * perPage));
         this.loadElements(true);
     }
 
     filterBrand = (e, data) => {
         if(data.value !== ""){
-            this.data.vehicleStore.setFilter(data.value);
-            this.data.vehicleStore.setMake(data.value)
-            this.data.tempModel = this.data.vehicleStore.filteredVehicles();
-            let pageClick = [];
-            pageClick.selected = 0;
-            this.handlePageClick(pageClick);
-            this.data.tempModel = this.data.vehicleStore.sortItems(this.data.tempModel);
-            this.pageCount = this.data.tempModel.length/per_page;
-            this.loadElements(true);
-            if(this.paginateRef.current) this.paginateRef.current.state.selected = 0;
+            this.data.store.setFilter(data.value)
+            this.data.tempData = this.data.listData.filter(item => item.makeId === data.value)
+            let pageClick = []
+            pageClick.selected = 0
+            if(this.paginateRef.current) this.paginateRef.current.state.selected = 0
+            this.pageCount = Math.ceil(this.data.tempData.length/perPage)
+            this.handlePageClick(pageClick)
+            this.requestSort()
         }
     }
 
     clearFilter = () => {
-        this.data.vehicleStore.setFilter(0)
-        this.data.vehicleStore.setOffset(0)
+        this.data.store.setFilter(0)
+        this.data.store.setOffset(0)
         this.dropdownRef.current.clearValue()
-        this.pageCount = this.data.vehicleStore.models.length/per_page
-        this.data.dataCount = this.data.vehicleStore.models.length
-        this.data.tempModel = this.data.vehicleStore.models
-        this.data.tempModel = this.data.vehicleStore.sortItems(this.data.tempModel);
+        this.data.tempData = this.data.listData
+        this.pageCount = Math.ceil(this.data.tempData.length/perPage)
         this.loadElements(true);
+        this.requestSort()
     }
     
     requestSort = key => {
-        let direction = 'ascending';
-        if (this.data.vehicleStore.sortConfig && this.data.vehicleStore.sortConfig.key === key && this.data.vehicleStore.sortConfig.direction === 'ascending') {
-         direction = 'descending';
+        if(key){
+            let direction = 'ascending';
+            if (this.data.store.sortConfig && this.data.store.sortConfig.key === key && this.data.store.sortConfig.direction === 'ascending') {
+            direction = 'descending';
+            }
+            this.data.store.sortConfig.edit(key, direction)
         }
-        this.data.vehicleStore.sortConfig.edit(key, direction)
-        if(this.props.isMakePage) this.data.tempModel = this.data.vehicleStore.sortMakes() 
-        else this.data.tempModel = this.data.vehicleStore.sortItems(this.data.tempModel)
-        this.loadElements(true);
-    }  
+        let self = this.data.store
+        let sortableItems = [];
+        if(self.filter === "") sortableItems = [...this.data.listData]
+        else sortableItems = [...this.data.tempData]
+        if (self.sortConfig !== null) {
+            let key = self.sortConfig.key
+            let dir = self.sortConfig.direction
+            sortableItems.sort((a, b) => {
+                if (a[key].toLowerCase() < b[key].toLowerCase()) {
+                return dir === 'ascending' ? -1 : 1
+                }
+                if (a[key].toLowerCase() > b[key].toLowerCase()) {
+                return dir === 'ascending' ? 1 : -1
+                }
+                return 0
+            })
+        }
 
-    setColumnCount = (count) => {
-        this.columnCount = count
-    }
+        this.data.tempData = sortableItems
+        this.loadElements(true)
+        
+    }  
 
     resetFormData = () => {
         this.formData = {
-            make_id: "",
-            make_name: "",
-            make_abrv: "",
-            model_name: "",
-            model_abrv: ""
+            makeId: "",
+            makeName: "",
+            makeAbrv: "",
+            modelName: "",
+            modelAbrv: ""
         }
-    }
-
-    onEditClick = (id) => {
-        this.isReadOnly.data.map((data) => data.state = true)
-        this.isReadOnly.data.find(data => data.id === id).state = false;
-        this.resetFormData()
-    }
-
-    onCancelClick = (id, makeId) => {
-        this.isReadOnly.data.map((data) => data.state = true)
-        this.resetFormData()
-        this.inputRefs = this.inputRefs.filter(ref => ref !== null)
-        if(!this.props.isMakePage){
-            this.inputRefs[id].state.value = makeId
-        }
-        if(this.nameRefs[id]) this.nameRefs[id].inputRef.current.value = this.nameRefs[id].props.defaultValue
-        if(this.abrvRefs[id]) this.abrvRefs[id].inputRef.current.value = this.abrvRefs[id].props.defaultValue
-    }
-
-    editData = (id) => {
-        if(this.props.isMakePage){
-            this.data.vehicleStore.makes.find(m => m.id === id).edit(this.formData.make_name, this.formData.make_abrv)
-        }else{
-            if(this.data.vehicleStore.filter !== "" && this.data.vehicleStore.models.find(m => m.id === id).makeId !== this.formData.make_id) this.data.tempModel = this.data.tempModel.filter(item => item.id !== id)
-            this.data.vehicleStore.models.find(m => m.id === id).edit(this.formData.make_id, this.formData.model_name, this.formData.model_abrv)
-        }
-        this.isReadOnly.data.map((data) => data.state = true)
-        this.resetFormData()
-        if(this.props.isMakePage) this.data.tempModel = this.data.vehicleStore.sortMakes() 
-        else this.data.tempModel = this.data.vehicleStore.sortItems(this.data.tempModel)
-        this.loadElements(true);
     }
 
     setRef = (ref) => {
-        this.inputRefs.push(ref)
+        if(ref != null) this.inputRefs.push(ref)
     };
 
     setNameRef = (ref) => {
-        this.nameRefs.push(ref)
+        if(ref != null) this.nameRefs.push(ref)
     }
 
     setAbrvRef = (ref) => {
-        this.abrvRefs.push(ref)
+        if(ref != null) this.abrvRefs.push(ref)
     }
 
     openCreate = () => {
@@ -246,93 +215,113 @@ class MainList extends React.Component {
         this.isCreateOpen = false
     }
 
+    onEditClick = (id) => {
+        this.isReadOnly.data.map((data) => data.state = true)
+        this.isReadOnly.data.find(data => data.id === id).state = false;
+        this.resetFormData()
+    }
+
+    onCancelClick = (id) => {
+        this.isReadOnly.data.map((data) => data.state = true)
+        this.resetFormData()
+        this.inputRefs = this.inputRefs.filter(ref => ref !== null)
+        if(this.nameRefs[id]) this.nameRefs[id].state.value = this.nameRefs[id].props.defaultValue
+        if(this.abrvRefs[id]) this.abrvRefs[id].state.value = this.abrvRefs[id].props.defaultValue
+    }
+
+    editData = (id) => {
+        let item = this.data.listData.find(item => item.id === id)
+        let list = this.data.listData.filter(item => item.id !== id)
+        if(list.find(item => item.makeName === this.formData.makeName)) {
+            this.data.alert.show('Unable to edit '+item.makeName+'! Another care make of this name already exists!', { type: 'error'})
+            return 
+        }else if((list.find(item => item.makeId === this.formData.makeId) && list.find(item => item.modelName === this.formData.modelName))){
+            this.data.alert.show('Unable to edit '+item.modelName+'! Another care model of this name already exists!', { type: 'error'})
+            return 
+        }
+
+        this.data.listData = this.data.service.edit(this.data.store, id, this.formData)
+        this.data.tempData = this.data.listData
+        if(this.data.store.filter !== ""){
+            this.filterBrand(false, this.dropdownRef.current.state)
+        }else this.requestSort();
+        this.isReadOnly.data.map((data) => data.state = true)
+        if(this.formData.makeName !== "") this.data.alert.show('Car make '+this.formData.makeName+' has been edited.', { type: 'success'})
+        else if(this.formData.modelName !== "") this.data.alert.show('Car model '+this.formData.modelName+' has been edited.', { type: 'success'})
+        this.resetFormData()
+    }
+
     createData = () => {
+        if(this.data.listData.find(item => item.makeName === this.formData.makeName)) {
+            this.data.alert.show('Unable to create '+this.formData.makeName+'! The car make already exists!', { type: 'error'})
+            return 
+        }else if((this.data.listData.find(item => item.makeId === this.formData.makeId) && this.data.listData.find(item => item.modelName === this.formData.modelName))){
+            this.data.alert.show('Unable to create '+this.formData.modelName+'! The car model for this car make already exists!', { type: 'error'})
+            return 
+        }
+
         let id = 0;
-        if(this.props.isMakePage) {
-            this.data.vehicleStore.addMake(this.formData.make_name, this.formData.make_abrv)
-            if(this.data.vehicleStore.makes.find(m => m.name === this.formData.make_name)) {
-                id = this.data.vehicleStore.makes.find(m => m.name === this.formData.make_name).id
-                this.isReadOnly.data.push({id: id, state: true})
-            }
-            this.loadElements();
-        }
-        else {
-            this.data.vehicleStore.addModel(this.formData.make_id, this.formData.model_name, this.formData.model_name)
-            if(this.data.vehicleStore.models.find(m => m.name === this.formData.model_name)) { 
-                id = this.data.vehicleStore.models.find(m => m.name === this.formData.model_name).id
-                this.isReadOnly.data.push({id: id, state: true})
-            }
-            this.createDropRef.current.clearValue()
-            if(this.tempLoadData.find(temp => temp.makeId === this.data.vehicleStore.models.find(m => m.name === this.formData.model_name).makeId) || this.data.vehicleStore.filter === "") {
-                this.tempLoadData.push(this.data.vehicleStore.models.find(m => m.name === this.formData.model_name))
-                this.data.tempModel = this.data.vehicleStore.sortItems(this.tempLoadData);
-                this.pageCount = this.data.tempModel.length/per_page;
-            }else if(this.tempLoadData.length === 0){
-                this.tempLoadData.push(this.data.vehicleStore.models.find(m => m.name === this.formData.model_name))
-                this.data.tempModel = this.data.vehicleStore.sortItems(this.tempLoadData);
-            }
-            
-            this.loadElements(true);
-        }
+        [this.data.listData, id] = this.data.service.add(this.data.store, this.formData)
+        this.data.tempData = this.data.listData
+        this.pageCount = Math.ceil(this.data.listData.length/perPage)
+        if(this.data.store.filter !== ""){
+            this.filterBrand(false, this.dropdownRef.current.state)
+        }else this.requestSort();
+        this.isReadOnly.data.push({id: id, state: true})
 
         if(this.createNameRef.current) this.createNameRef.current.inputRef.current.value = ""
         if(this.createAbrvRef.current) this.createAbrvRef.current.inputRef.current.value = ""
+
+        if(this.formData.makeName !== "") this.data.alert.show('Car make '+this.formData.makeName+' has been created.', { type: 'success'})
+        else if(this.formData.modelName !== "") this.data.alert.show('Car model '+this.formData.modelName+' has been created.', { type: 'success'})
         this.resetFormData()
         this.isCreateOpen = false
-
-        if(this.paginateRef.current) this.paginateRef.current.state.selected = 0;
     }
 
     onCancelCreate = () => {
         this.resetFormData()
         this.isCreateOpen = false
         if(this.props.isModelPage) this.createDropRef.current.clearValue()
- 
         if(this.createNameRef.current) this.createNameRef.current.inputRef.current.value = ""
         if(this.createAbrvRef.current) this.createAbrvRef.current.inputRef.current.value = ""
     }
 
     deleteData = (id) => {
-        if(this.props.isMakePage) {
-            this.data.vehicleStore.removeMake(id)
+        let item = this.data.listData.find(data => data.id === id)
+        this.data.listData = this.data.service.remove(this.data.store, id)
+        if(this.data.store.filter !== ""){
+            this.filterBrand(false, this.dropdownRef.current.state)
+        }else {
+            this.pageCount = Math.ceil(this.data.listData.length/perPage)
+            this.loadElements();
         }
-        else {
-            this.data.vehicleStore.removeModel(id)
-        }   
 
-        this.loadElements();
-        this.tempMakeData = [...this.data.vehicleStore.makes]
-        this.tempModelData = [...this.data.vehicleStore.models]
-    }
+        if(item.modelName) this.data.alert.show('Car model '+item.modelName+' has been deleted.', { type: 'info'})
+        else this.data.alert.show('Car make '+item.makeName+' has been deleted.', { type: 'info'})
+    }   
 
     render() {
         const getClassNamesFor = (name) => {
-            if (!this.data.vehicleStore.sortConfig) {
+            if (!this.data.store.sortConfig) {
               return;
             }
-            return this.data.vehicleStore.sortConfig.key === name ? this.data.vehicleStore.sortConfig.direction : undefined;
+            return this.data.store.sortConfig.key === name ? this.data.store.sortConfig.direction : undefined;
         };
         let dir;
-        if(this.data.vehicleStore.sortConfig.direction === "ascending"){
+        if(this.data.store.sortConfig.direction === "ascending"){
             dir = 
                 <Icon 
                     name="long arrow alternate up"
                 />;
-        }else if(this.data.vehicleStore.sortConfig.direction === "descending"){
+        }else if(this.data.store.sortConfig.direction === "descending"){
             dir =
                 <Icon
                     name="long arrow alternate down"
                 />
         }
 
-        const brandOptions = _.map(this.tempMakeData, (make, index) => ({
-            key: make.id,
-            text: make.name,
-            value: make.id,
-        })
-        )
         let button;
-        if(this.data.vehicleStore.filter !== ""){
+        if(this.data.store.filter !== ""){
             button = 
                 <Button 
                     onClick={() => this.clearFilter()}
@@ -344,7 +333,7 @@ class MainList extends React.Component {
         }
 
         let dropdown;
-        if(!this.props.isMakePage){
+        if(this.data.brandList){
                 dropdown = 
                 <div>
                     <Container textAlign="left">        
@@ -355,7 +344,7 @@ class MainList extends React.Component {
                             placeholder='Car Brand' 
                             search 
                             selection 
-                            options={brandOptions} 
+                            options={this.data.brandList} 
                             onChange={this.filterBrand}
                         />
                         {button}
@@ -367,438 +356,215 @@ class MainList extends React.Component {
                     />
                 </div>   
         }
+        let headerItems = [
+            this.data.listItems.map((item, index) => {
+                if(item === "edit"){
+                    return (
+                        <Grid.Column key={index}>
+                            <Icon 
+                                name='edit outline'
+                                size='large'
+                            />
+                        </Grid.Column>
+                    )
+                }
+                else if(item === "delete"){
+                    return (
+                        <Grid.Column key={index}>
+                            <Icon 
+                                name='trash alternate'
+                                size='large'
+                            />
+                        </Grid.Column>
+                    )
+                }
+                else{
+                    return (
+                        <Grid.Column key={index}>
+                            <Button 
+                                compact
+                                onClick={() => this.requestSort(this.data.listKeys[index])}
+                                className={getClassNamesFor(this.data.listKeys[index])}
+                            >
+                                {item} 
+                                {this.data.store.sortConfig.key === this.data.listKeys[index]? dir : ""}
+                            </Button>
+                        </Grid.Column>
+                    )    
+                }
+            })
+        ]
 
         let listItems = "";
-        if(this.props.isMakePage){
-            this.setColumnCount(4)
-            listItems = [
-                <Grid.Row key="header">
-                    <Grid.Column>
-                        Name
-                    </Grid.Column>
-                    <Grid.Column>
-                        Name Abbreviation
-                    </Grid.Column>
-                    <Grid.Column>
-                        <Icon 
-                            name='edit outline'
-                            size='large'
-                        />
-                    </Grid.Column>
-                    <Grid.Column>
-                        <Icon 
-                            name='trash alternate'
-                            size='large'
-                        />
-                    </Grid.Column>
-                </Grid.Row>,
-                this.tempLoadData.map((make, index) =>
-                    <Grid.Row key={make.id}>
-                        <Grid.Column>
-                            <Input 
-                                ref={this.setNameRef}
-                                defaultValue={make.name}
-                                readOnly={this.isReadOnly.data.find(data => data.id === make.id).state}
-                                className={this.isReadOnly.data.find(data => data.id === make.id).state ? "grid-input make_name readOnly" : "grid-input make_name"}
-                                onChange={(e, data) => {
-                                    this.formData.make_name = data.value
-                                }}
-                            />
-                        </Grid.Column>
-                        <Grid.Column>
-                            <Input 
-                                ref={this.setAbrvRef}
-                                defaultValue={make.abrv}
-                                readOnly={this.isReadOnly.data.find(data => data.id === make.id).state}
-                                className={this.isReadOnly.data.find(data => data.id === make.id).state ? "grid-input make_abrv readOnly" : "grid-input make_abrv"}
-                                onChange={(e, data) => {
-                                    this.formData.make_abrv = data.value
-                                }}
-                            />
-                        </Grid.Column>
-                        {!this.isReadOnly.data.find(data => data.id === make.id).state ? 
-                            <Grid.Column>
-                                <Button
-                                    onClick={() => this.editData(make.id)}
-                                >
-                                    Confirm
-                                </Button>
-                                <Button
-                                    color="google plus"
-                                    onClick={() => this.onCancelClick(index)}
-                                >
-                                    X
-                                </Button>
-                            </Grid.Column>
-                            : 
-                            <Grid.Column>
-                                <Button
-                                    onClick={() => this.onEditClick(make.id)}
-                                >
-                                    Edit
-                                </Button>
-                            </Grid.Column>
+        listItems = [
+            this.tempLoadData.map((item, index) => {
+                let mainIndex = index
+                return(
+                <Grid.Row key={item.id}>
+                    {this.data.listKeys.map((key, ind) => {
+                        if((key === "makeName") && this.data.brandList){
+                            return (
+                                <Grid.Column key={item.id+ind+key}>
+                                    <Dropdown 
+                                        id={index}
+                                        className="dropdown"
+                                        placeholder='Select Brand' 
+                                        selection 
+                                        closeOnChange
+                                        ref={key === "makeName" ? this.setNameRef : this.setAbrvRef}
+                                        options={key === "makeName" ? this.data.brandList : this.data.abrvOptions} 
+                                        defaultValue={this.data.brandList.find(brand => brand.key === item.makeId).value}
+                                        disabled={this.isReadOnly.data.find(data => data.id === item.id).state}
+                                        className={this.isReadOnly.data.find(data => data.id === item.id).state ? "grid-input "+key+" readOnly" : "grid-input "+key}
+                                        onChange={(e, data) => {
+                                            this.formData.makeId = data.value
+                                            this.inputRefs.find(ref => ref.props.id === index.toString()+"1").inputRef.current.value = this.data.store.makes.find(make => make.id === data.value).name
+                                        }}
+                                    />
+                                </Grid.Column>
+                            )
                         }
-                        <Grid.Column>
-                            <Button
-                                onClick={() => this.deleteData(make.id)}
-                            >
-                                Delete
-                            </Button>
-                        </Grid.Column>
+                        else if(key === "edit"){
+                            return(
+                            !this.isReadOnly.data.find(data => data.id === item.id).state ? 
+                                <Grid.Column key={item.id+ind+key} >
+                                    <Button
+                                        onClick={() => this.editData(item.id)}
+                                    >
+                                        Confirm
+                                    </Button>
+                                    <Button
+                                        color="google plus"
+                                        onClick={() => this.onCancelClick(index)}
+                                    >
+                                        X
+                                    </Button>
+                                </Grid.Column>
+                                : 
+                                <Grid.Column key={item.id+ind+key}>
+                                    <Button
+                                        onClick={() => this.onEditClick(item.id)}
+                                    >
+                                        Edit
+                                    </Button>
+                                </Grid.Column>
                             
-                        
-                    </Grid.Row>
-                )           
-            ]
-        }else if(this.props.isModelPage){
-            this.setColumnCount(5)
-            listItems = [
-                <Grid.Row key="header">
-                    <Grid.Column>
-                        <Button 
-                            compact
-                            onClick={() => this.requestSort('make_name')}
-                            className={getClassNamesFor('make_name')}
-                        >
-                            Name 
-                            {this.data.vehicleStore.sortConfig.key === "make_name"? dir : ""}
-                            </Button>
-                    </Grid.Column>
-                    <Grid.Column>
-                        <Button 
-                            compact
-                            onClick={() => this.requestSort('model_name')}
-                            className={getClassNamesFor('model_name')}
-                            >
-                            Model Name
-                            {this.data.vehicleStore.sortConfig.key === "model_name"? dir : ""}
-                        </Button>
-                    </Grid.Column>
-                    <Grid.Column>
-                        <Button 
-                            compact
-                            onClick={() => this.requestSort('model_abrv')}
-                            className={getClassNamesFor('model_abrv')}
-                        >
-                            Model Name
-                            {this.data.vehicleStore.sortConfig.key === "model_abrv"? dir : ""}
-                        </Button>
-                    </Grid.Column>
-                    <Grid.Column>
-                        <Icon 
-                            name='edit outline'
-                            size='large'
-                        />
-                    </Grid.Column>
-                    <Grid.Column>
-                        <Icon 
-                            name='trash alternate'
-                            size='large'
-                        />
-                    </Grid.Column>
-                </Grid.Row>,
-                this.tempLoadData.map((vehicle, index) =>
-                    <Grid.Row key={vehicle.id}>
-                        <Grid.Column>
-                            <Dropdown 
-                                className="dropdown"
-                                placeholder='Select Brand' 
-                                selection 
-                                ref={this.setRef}
-                                options={brandOptions} 
-                                defaultValue={vehicle.makeId}
-                                disabled={this.isReadOnly.data.find(data => data.id === vehicle.id).state}
-                                className={this.isReadOnly.data.find(data => data.id === vehicle.id).state ? "grid-input make_name readOnly" : "grid-input make_name"}
-                                onChange={(e, data) => {
-                                    this.formData.make_id = data.value
-                                }}
-                            />
-                        </Grid.Column>
-                        <Grid.Column>
-                            <Input 
-                                ref={this.setNameRef}
-                                defaultValue={vehicle.name}
-                                readOnly={this.isReadOnly.data.find(data => data.id === vehicle.id).state}
-                                className={this.isReadOnly.data.find(data => data.id === vehicle.id).state ? "grid-input model_name readOnly" : "grid-input model_name"}
-                                onChange={(e, data) => {
-                                    this.formData.model_name = data.value
-                                }}
-                            />
-                        </Grid.Column>
-                        <Grid.Column>
-                            <Input 
-                                ref={this.setAbrvRef}
-                                defaultValue={vehicle.abrv}
-                                readOnly={this.isReadOnly.data.find(data => data.id === vehicle.id).state}
-                                className={this.isReadOnly.data.find(data => data.id === vehicle.id).state ? "grid-input model_name readOnly" : "grid-input model_name"}
-                                onChange={(e, data) => {
-                                    this.formData.model_abrv = data.value
-                                }}
-                            />
-                        </Grid.Column>
-                        {!this.isReadOnly.data.find(data => data.id === vehicle.id).state ? 
-                            <Grid.Column>
-                                <Button
-                                    onClick={() => this.editData(vehicle.id)}
-                                >
-                                    Confirm
-                                </Button>
-                                <Button
-                                    color="google plus"
-                                    onClick={() => this.onCancelClick(index, vehicle.makeId)}
-                                >
-                                    X
-                                </Button>
-                            </Grid.Column>
-                            : 
-                            <Grid.Column>
-                                <Button
-                                    onClick={() => this.onEditClick(vehicle.id)}
-                                >
-                                    Edit
-                                </Button>
-                            </Grid.Column>
+                            )
+                        }else if(key === "delete"){
+                            return (
+                                <Grid.Column key={item.id+ind+key}>
+                                    <Button
+                                        onClick={() => this.deleteData(item.id)}
+                                    >
+                                        Delete
+                                    </Button>
+                                </Grid.Column>
+                            )
                         }
+                        else{
+                            return (
+                                <Grid.Column key={item.id+ind+key}>
+                                    <Input 
+                                        id={index.toString()+ind}
+                                        ref={this.setRef}
+                                        defaultValue={item[key]}
+                                        readOnly={key==="makeAbrv"? true : this.isReadOnly.data.find(data => data.id === item.id).state}
+                                        className={this.isReadOnly.data.find(data => data.id === item.id).state ? "grid-input "+key+" readOnly" : "grid-input "+key}
+                                        onChange={(e, data) => {
+                                            this.formData[key] = data.value
+                                        }}
+                                    />
+                                </Grid.Column>
+                                
+                            )
+                        }
+                    })}
+                </Grid.Row>
+                )
+            })
+            
+        ]
+        
+        let createElement = "";
+        if(this.data.createColumnCount){
+        createElement = 
+            <Container
+                fluid
+                className="create-container"
+            >
+                <Divider 
+                    clearing
+                    section
+                />
+                {!this.isCreateOpen ?
+                <Button 
+                    size='big'
+                    onClick={this.openCreate}
+                >
+                    Create
+                </Button>
+                : ""}
+                {this.isCreateOpen ? 
+                <Grid 
+                    celled="internally"
+                    columns={this.data.createColumnCount} 
+                    verticalAlign="middle"
+                    textAlign="center"    
+                >
+                    <Grid.Row key="createRow">
+                        {this.data.listKeys.map((key, index) => {
+                            if(key==="edit" || key==="delete") return 
+                            if(key === "makeAbrv" && this.data.brandList) return
+                            if(key === "makeName" && this.data.brandList){
+                                return(
+                                    <Grid.Column key={key+index}>
+                                        <Dropdown 
+                                            className="dropdown"
+                                            placeholder={this.data.listItems[index]}
+                                            selection 
+                                            ref={this.createDropRef}
+                                            options={this.data.brandList} 
+                                            className={"grid-input "+key}
+                                            onChange={(e, data) => {
+                                                this.formData.makeId = data.value
+                                            }}
+                                        />
+                                    </Grid.Column>
+                                )
+                            }
+                            else{
+                                return (
+                                    <Grid.Column key={key+index}>
+                                        <Input 
+                                            ref={(key==="makeName" || key==="modelName")?this.createNameRef:this.createAbrvRef}
+                                            placeholder={this.data.listItems[index]}
+                                            className={"grid-input "+key}
+                                            onChange={(e, data) => {
+                                                this.formData[key] = data.value
+                                            }}
+                                        />
+                                    </Grid.Column>
+                                )
+                            }
+                        })}
                         <Grid.Column>
                             <Button
-                                onClick={() => this.deleteData(vehicle.id)}
+                                onClick={() => this.createData()}
                             >
-                                Delete
+                                Confirm
+                            </Button>
+                            <Button
+                                color="google plus"
+                                onClick={() => this.onCancelCreate()}
+                            >
+                                X
                             </Button>
                         </Grid.Column>
                     </Grid.Row>
-                )
-            ]
-        }else{
-            this.setColumnCount(4)
-            listItems = [
-                <Grid.Row key="header">
-                    <Grid.Column>
-                        <Button 
-                            compact
-                            onClick={() => this.requestSort('make_name')}
-                            className={getClassNamesFor('make_name')}
-                        >
-                            Name 
-                            {this.data.vehicleStore.sortConfig.key === "make_name"? dir : ""}
-                            </Button>
-                    </Grid.Column>
-                    <Grid.Column>
-                        <Button 
-                            compact
-                            onClick={() => this.requestSort('make_abrv')}
-                            className={getClassNamesFor('make_abrv')}
-                        >
-                            Name Abbreviation
-                            {this.data.vehicleStore.sortConfig.key === "make_abrv"? dir : ""}
-                        </Button>
-                    </Grid.Column>
-                    <Grid.Column>
-                        <Button 
-                            compact
-                            onClick={() => this.requestSort('model_name')}
-                            className={getClassNamesFor('model_name')}
-                            >
-                            Model Name
-                            {this.data.vehicleStore.sortConfig.key === "model_name"? dir : ""}
-                        </Button>
-                    </Grid.Column>
-                    <Grid.Column>
-                        <Button 
-                            compact
-                            onClick={() => this.requestSort('model_abrv')}
-                            className={getClassNamesFor('model_abrv')}
-                        >
-                            Model Name
-                            {this.data.vehicleStore.sortConfig.key === "model_abrv"? dir : ""}
-                        </Button>
-                    </Grid.Column>
-                </Grid.Row>
-                ,
-                this.tempLoadData.map((vehicle) =>
-                    <Grid.Row key={vehicle.id}>
-                        <Grid.Column>
-                            {this.tempMakeData.find(make => make.id === vehicle.makeId).name}
-                        </Grid.Column>
-                        <Grid.Column>
-                            {this.tempMakeData.find(make => make.id === vehicle.makeId).abrv}
-                        </Grid.Column>
-                        <Grid.Column>
-                            {vehicle.name}
-                        </Grid.Column>
-                        <Grid.Column>
-                            {vehicle.abrv}
-                        </Grid.Column>
-                    </Grid.Row>
-                )
-            ]
+                </Grid>
+                : ""}
+            </Container>
         }
-
-        let reactPaginate;
-        if(this.data.dataCount > per_page && this.data.tempModel.length > per_page){
-            reactPaginate = 
-                <ReactPaginate
-                    ref={this.paginateRef}
-                    previousLabel={'previous'}
-                    nextLabel={'next'}
-                    breakLabel={'...'}
-                    breakClassName={'break-me'}
-                    pageCount={this.pageCount}
-                    marginPagesDisplayed={2}
-                    pageRangeDisplayed={5}
-                    onPageChange={this.handlePageClick}
-                    pageClassName={'page'}
-                    containerClassName={'pagination'}
-                    subContainerClassName={'pages pagination'}
-                    activeClassName={'active'}
-                />
-        }else{
-            reactPaginate = "";
-        }
-
-        let createElement;
-        if(this.props.isMakePage){
-            createElement = 
-                <Container
-                    fluid
-                    className="create-container"
-                >
-                    <Divider 
-                        clearing
-                        section
-                    />
-                    {!this.isCreateOpen ?
-                    <Button 
-                        size='big'
-                        onClick={this.openCreate}
-                    >
-                        Create
-                    </Button>
-                    : ""}
-                    {this.isCreateOpen ? 
-                    <Grid 
-                        celled="internally"
-                        columns={this.columnCount} 
-                        verticalAlign="middle"
-                        textAlign="center"    
-                    >
-                        <Grid.Row key="createRow">
-                            <Grid.Column>
-                                <Input 
-                                    ref={this.createNameRef}
-                                    placeholder='Brand Name'
-                                    className="grid-input model_name"
-                                    onChange={(e, data) => {
-                                        this.formData.make_name = data.value
-                                    }}
-                                />
-                            </Grid.Column>
-                            <Grid.Column>
-                                <Input 
-                                    ref={this.createAbrvRef}
-                                    placeholder='Brand Abbreviation'
-                                    className="grid-input model_name"
-                                    onChange={(e, data) => {
-                                        this.formData.make_abrv = data.value
-                                    }}
-                                />
-                            </Grid.Column>
-                            <Grid.Column>
-                                <Button
-                                    onClick={() => this.createData()}
-                                >
-                                    Confirm
-                                </Button>
-                                <Button
-                                    color="google plus"
-                                    onClick={() => this.onCancelCreate()}
-                                >
-                                    X
-                                </Button>
-                            </Grid.Column>
-                        </Grid.Row>
-                    </Grid>
-                    : ""}
-                </Container>
-        }else if(this.props.isModelPage){
-            createElement = 
-                <Container
-                    fluid
-                    className="create-container"
-                >
-                    <Divider 
-                        clearing
-                        section
-                    />
-                    {!this.isCreateOpen ?
-                    <Button 
-                        size='big'
-                        onClick={this.openCreate}
-                    >
-                        Create
-                    </Button>
-                    : ""}
-                    {this.isCreateOpen ? 
-                    <Grid 
-                        celled='internally' 
-                        columns={this.columnCount} 
-                        verticalAlign="middle"
-                        textAlign="center"    
-                    >
-                        <Grid.Row key="createRow">
-                            <Grid.Column>
-                                <Dropdown 
-                                    className="dropdown"
-                                    placeholder='Select Brand' 
-                                    selection 
-                                    ref={this.createDropRef}
-                                    options={brandOptions} 
-                                    className="grid-input make_name"
-                                    onChange={(e, data) => {
-                                        this.formData.make_id = data.value
-                                    }}
-                                />
-                            </Grid.Column>
-                            <Grid.Column>
-                                <Input 
-                                    ref={this.createNameRef}
-                                    placeholder='Model Name'
-                                    className="grid-input model_name"
-                                    onChange={(e, data) => {
-                                        this.formData.model_name = data.value
-                                    }}
-                                />
-                            </Grid.Column>
-                            <Grid.Column>
-                                <Input 
-                                    ref={this.createAbrvRef}
-                                    placeholder='Model Abbreviation'
-                                    className="grid-input model_name"
-                                    onChange={(e, data) => {
-                                        this.formData.model_abrv = data.value
-                                    }}
-                                />
-                            </Grid.Column>
-                            <Grid.Column>
-                                <Button
-                                    onClick={() => this.createData()}
-                                >
-                                    Confirm
-                                </Button>
-                                <Button
-                                    color="google plus"
-                                    onClick={() => this.onCancelCreate()}
-                                >
-                                    X
-                                </Button>
-                            </Grid.Column>
-                        </Grid.Row>
-                    </Grid>
-                    : ""}
-                </Container>
-        }
-
         return (
             <div>
                 {dropdown}
@@ -808,8 +574,25 @@ class MainList extends React.Component {
                     verticalAlign="middle"
                     textAlign="center"    
                 > 
+                    <Grid.Row key="header">
+                        {headerItems}
+                    </Grid.Row>
                     {listItems}
-                    {reactPaginate}
+                    <ReactPaginate
+                        ref={this.paginateRef}
+                        previousLabel={'previous'}
+                        nextLabel={'next'}
+                        breakLabel={'...'}
+                        breakClassName={'break-me'}
+                        pageCount={this.pageCount}
+                        marginPagesDisplayed={2}
+                        pageRangeDisplayed={5}
+                        onPageChange={this.handlePageClick}
+                        pageClassName={'page'}
+                        containerClassName={'pagination'}
+                        subContainerClassName={'pages pagination'}
+                        activeClassName={'active'}
+                    />
                     {createElement}
                 </Grid>
             </div>
@@ -818,4 +601,4 @@ class MainList extends React.Component {
     }
 }
 
-export default inject("vehicleStore")(observer(MainList));
+export default (observer(MainList))

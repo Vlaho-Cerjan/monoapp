@@ -68,3 +68,22 @@
   padding-left: 0 !important;
   padding-right: 0 !important;
 }
+
+.pagination > li.disabled:first-child > a, .pagination > li.disabled:first-child > span, .pagination > li.disabled:last-child > a, .pagination > li.disabled:last-child > span{
+  color: rgba(255,255,255, 0.7);
+  border-color: rgba(255,255,255, 0.7);
+  cursor:default;
+}
+
+.row .column .ui.selection.dropdown, .row .column .ui.input>input{
+  min-width: 7em !important;
+  width: 100% !important;
+}
+
+#__react-alert__ div[positions="top right"]{
+  align-items: flex-end !important;
+}
+
+#__react-alert__ div[positions="top left"]{
+  align-items: flex-start !important;
+}
