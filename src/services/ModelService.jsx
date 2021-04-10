@@ -20,7 +20,7 @@ class ModelService {
         return items
     }
 
-    getFilteredModels = (models, brand) => {
+    getFilteredList = (models, brand) => {
         var makeList = [];
         models.map((model) => {
             if(model.makeId === brand){

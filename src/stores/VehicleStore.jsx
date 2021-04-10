@@ -51,6 +51,10 @@ const sortConfig = types
         edit(key, dir){
             self.key = key
             self.direction = dir
+        },
+        initialValue(key){
+            self.key = key
+            self.direction = "ascending"
         }
     }))
 
@@ -60,9 +64,7 @@ const VehicleStore = types
         models: types.array(VehicleModel),
         make: types.maybe(types.reference(VehicleMake)),
         model: types.reference(VehicleModel),
-        filter: types.string,
-        offset: types.integer,
-        sortConfig: types.optional(sortConfig, {key: "make_name",direction: "ascending"})
+        sortConfig: types.optional(sortConfig, {key: "makeName",direction: "ascending"})
     })
     .views((self) => ({
         filteredVehicles() {
@@ -71,50 +73,23 @@ const VehicleStore = types
         },
         sortItems(data) {
             let sortableItems = [];
-            let tempMake = [...self.makes]
-            if(self.filter === "") sortableItems = [...self.models]
-            else sortableItems = data
-            if (self.sortConfig !== null) {
+            sortableItems = [...data];
+            if (self.sortConfig.key !== "") {
                 let key = self.sortConfig.key;
                 let dir = self.sortConfig.direction;
-                if(self.sortConfig.key === "make_name" || self.sortConfig.key === "make_abrv"){
-                    let sortedItems = [];
-                    key = key.substring(key.length - 4);
-                    tempMake.sort((a, b) => {
-                        if (a[key] < b[key]) {
-                        return dir === 'ascending' ? -1 : 1;
-                        }
-                        if (a[key] > b[key]) {
-                        return dir === 'ascending' ? 1 : -1;
-                        }
-                        return 0;
-                    });
-    
-                    for(let i=0; i < tempMake.length; i++ ){
-                        sortableItems.map((vehicle) => {
-                            if(vehicle.makeId === tempMake[i].id){
-                                sortedItems.push(vehicle);
-                            }
-                            return 0;
-                        })
+
+                sortableItems.sort((a, b) => {
+                    if (a[key].toLowerCase() < b[key].toLowerCase()) {
+                    return dir === 'ascending' ? -1 : 1;
                     }
-    
-                    sortableItems = sortedItems;
-                }else{
-                    key = key.substring(key.length - 4);
-                    sortableItems.sort((a, b) => {
-                        if (a[key] < b[key]) {
-                        return dir === 'ascending' ? -1 : 1;
-                        }
-                        if (a[key] > b[key]) {
-                        return dir === 'ascending' ? 1 : -1;
-                        }
-                        return 0;
-                    });
-                }
+                    if (a[key].toLowerCase() > b[key].toLowerCase()) {
+                    return dir === 'ascending' ? 1 : -1;
+                    }
+                    return 0;
+                });
             }
 
-            return sortableItems
+            return sortableItems;
         },
         sortMakes() {
             let sortableItems = [];
@@ -159,13 +134,6 @@ const VehicleStore = types
         setMake(id){
             if(id === 0) self.make = self.makes[0]
             else self.make = self.makes.find(m => m.id === id)
-        },
-        setFilter(id){
-            if (id===0) self.filter = ""
-            else self.filter = self.makes.find(make => make.id === id).name
-        },
-        setOffset(offset){
-            self.offset = offset
         },
         removeMake(id){
             if(self.make.id === id) self.make = self.makes.find(m => m.id !== id)
@@ -222,8 +190,6 @@ const VehicleStore = types
             ],
             make: 1,
             model: 1,
-            filter: "",
-            offset: 0,
             sortConfig: {
                 key: "",
                 direction: ""

@@ -321,7 +321,7 @@ class MainList extends React.Component {
                     Clear filter
                 </Button>;
         } else {
-            button = "";
+            button = null;
         }
 
         let dropdown;
@@ -494,7 +494,7 @@ class MainList extends React.Component {
                 >
                     Create
                 </Button>
-                : ""}
+                : null}
                 {this.isCreateOpen ? 
                 <Grid 
                     celled="internally"
@@ -552,7 +552,7 @@ class MainList extends React.Component {
                         </Grid.Column>
                     </Grid.Row>
                 </Grid>
-                : ""}
+                : null}
             </Container>
         }
         return (
