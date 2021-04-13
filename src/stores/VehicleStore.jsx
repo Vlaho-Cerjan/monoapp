@@ -169,7 +169,7 @@ const VehicleStore = types
                 {id: 11, makeId: 2, name: "ECOSPORT", abrv: "", active:1},
                 {id: 12, makeId: 2, name: "ESCAPE", abrv: "", active:1},
                 {id: 13, makeId: 2, name: "BRONCO SPORT", abrv: "", active:1},
-                {id: 14, makeId: 2, name: "ECOSPORT", abrv: "", active:1},
+                {id: 14, makeId: 2, name: "ECOSPORT 2", abrv: "", active:1},
                 {id: 15, makeId: 2, name: "EDGE", abrv: "", active:1},
                 {id: 16, makeId: 2, name: "EXPLORER", abrv: "", active:1},
                 {id: 17, makeId: 2, name: "EXPEDITION", abrv: "", active:1},
@@ -206,9 +206,14 @@ const VehicleStore = types
         if (!store) store = _store
       
         return store
-      }
+    }
       
-      export function useStore(initialState) {
-        const store = useMemo(() => initializeStore(initialState), [initialState])
-        return store
-      }
+export function useStore(initialState) {
+    const store = useMemo(() => initializeStore(initialState), [initialState])
+    return store
+}
+
+export function getStore(){
+    const store = initializeStore()
+    return store
+}

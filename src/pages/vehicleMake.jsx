@@ -1,8 +1,6 @@
 import React from 'react'
-import { inject, observer } from 'mobx-react'
+import { observer } from 'mobx-react'
 import { action, makeObservable, observable } from 'mobx'
-
-import makeService from '../services/MakeService'
 
 import ListHeader from '../components/ListHeader/ListHeader'
 import ListsMakeItems from '../components/ListMakeItems/ListsMakeItems'
@@ -15,6 +13,8 @@ import { withAlert } from 'react-alert'
 import CreateModal from '../components/CreateModal/CreateModal'
 import CreateMakeRow from '../components/CreateModal/CreateRow/CreateMakeRow'
 
+import MakeService from '../services/MakeService'
+
 class vehicleMake extends React.Component {
     list = [];
     perCount = 10;
@@ -22,16 +22,18 @@ class vehicleMake extends React.Component {
     offset = 0;
     dataList = [];
     viewList = [];
-    filter = "";
+    filter = 1;
     isReadOnly = {
       data: []
-    }
+    };
     formData = {
       id: 0,
       makeName: "",
       makeAbrv: "",
-    }
-    isCreateOpen = false
+    };
+    isCreateOpen = false;
+
+
 
     constructor(props){
         super(props);
@@ -60,14 +62,14 @@ class vehicleMake extends React.Component {
             createDataHandler: action
         });
 
-        this.list = makeService.getMakeList(this.props.vehicleStore);
+        this.list = MakeService.getMakeList();
         this.list.map((data) => 
             this.isReadOnly.data.push({id: data.id, state: true})
         )
         this.dataList = [...this.list];
         this.pageCount = Math.ceil(this.dataList.length/this.perCount);
         this.viewList = this.list.slice(this.offset, this.offset+this.perCount);
-        this.props.vehicleStore.sortConfig.initialValue("makeName");
+        this.sortConfig = listService.setSortConfig("makeName");
     }
 
     handlePageClick = (data) => {
@@ -78,12 +80,12 @@ class vehicleMake extends React.Component {
 
     sortItems = key => {
         let direction = 'ascending';
-        if (this.props.vehicleStore.sortConfig && this.props.vehicleStore.sortConfig.key === key && this.props.vehicleStore.sortConfig.direction === 'ascending') {
+        if (this.sortConfig.key === key && this.sortConfig.direction === 'ascending') {
             direction = 'descending';
         }
         
-        this.props.vehicleStore.sortConfig.edit(key, direction);
-        this.list = listService.sortItems([...this.list], this.props.vehicleStore.sortConfig);
+        this.sortConfig = listService.setSortConfig(key, direction);
+        this.list = listService.sortItems([...this.list]);
         this.dataList = [...this.list];
         this.viewList = this.dataList.slice(this.offset, this.offset+this.perCount);
     }
@@ -116,8 +118,8 @@ class vehicleMake extends React.Component {
           this.props.alert.show('Unable to edit '+makeName+'! Another care make of this name already exists!', { type: 'error'});
           return;
       }
-      this.list = makeService.edit(this.props.vehicleStore, id, this.formData);
-      this.list = listService.sortItems(this.list, this.props.vehicleStore.sortConfig);
+      this.list = MakeService.edit(id, this.formData);
+      this.list = listService.sortItems(this.list);
       this.dataList = [...this.list];
       this.viewList = this.dataList.slice(this.offset, this.offset+this.perCount);
       this.isReadOnly.data.map((data) => data.state = true);
@@ -127,11 +129,18 @@ class vehicleMake extends React.Component {
 
     deleteDataHandler = (id) => {
       let item = this.list.find(data => data.id === id);
-      this.list = makeService.remove(this.props.vehicleStore, id);
+      this.list = MakeService.remove(id);
       this.pageCount = Math.ceil(this.list.length/this.perCount);
       this.dataList = [...this.list];
       this.viewList = this.dataList.slice(this.offset, this.offset+this.perCount);
       this.props.alert.show('Car make '+item.makeName+' has been deleted.', { type: 'info'});
+      if(this.paginateRef.current.state.selected > this.pageCount-1) {
+        let data = {
+          selected: this.paginateRef.current.state.selected-1
+        }
+        this.handlePageClick(data)
+        this.paginateRef.current.state.selected = data.selected;
+      }
     }
 
     openCreate = () => {
@@ -149,10 +158,10 @@ class vehicleMake extends React.Component {
       }
 
       let id = 0;
-      [this.list, id] = makeService.add(this.props.vehicleStore, this.formData)
+      [this.list, id] = makeService.add(this.formData)
       this.pageCount = Math.ceil(this.list.length/this.perCount)
       this.isReadOnly.data.push({id: id, state: true})
-      this.list = listService.sortItems(this.list, this.props.vehicleStore.sortConfig);
+      this.list = listService.sortItems(this.list);
       this.dataList = [...this.list];
       this.viewList = this.dataList.slice(this.offset, this.offset+this.perCount);
       this.props.alert.show('Car make '+this.formData.makeName+' has been created.', { type: 'success'})
@@ -163,8 +172,8 @@ class vehicleMake extends React.Component {
 
     render() {
         const headerItems = [ 
-            {key: "makeName", title: "Name", type: 'input'},
-            {key: "makeAbrv", title: "Abbreviation", type: 'input'},
+            {key: "makeName", title: "Name", type: 'inputOrText'},
+            {key: "makeAbrv", title: "Abbreviation", type: 'inputOrText'},
             {key: "edit", title: "Edit", type: 'button'},
             {key: "delete", title: "Delete", type: 'button'}
         ]
@@ -182,7 +191,7 @@ class vehicleMake extends React.Component {
                         textAlign="center"    
                 >
                     <ListHeader 
-                        sortConfig = {this.props.vehicleStore.sortConfig}
+                        sortConfig = {this.sortConfig}
                         sortItems = {this.sortItems}
                         getClassNames = {listService.getClassNamesFor}
                         headerList = {headerItems}
@@ -232,4 +241,4 @@ class vehicleMake extends React.Component {
     }
 }
   
-export default inject("vehicleStore")(withAlert()(observer(vehicleMake))); 
+export default withAlert()(observer(vehicleMake)); 

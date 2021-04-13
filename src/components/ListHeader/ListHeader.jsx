@@ -20,7 +20,7 @@ class ListHeader extends Component {
         return (
             <Grid.Row key="header">
                 {this.props.headerList.map((item, index) => {
-                    if(item.key === "edit"){
+                    if(item.key === "edit" && item.type === "button"){
                         return (
                             <Grid.Column key={index}>
                                 <Icon 
@@ -30,7 +30,7 @@ class ListHeader extends Component {
                             </Grid.Column>
                         )
                     }
-                    else if(item.key === "delete"){
+                    else if(item.key === "delete" && item.type === "button"){
                         return (
                             <Grid.Column key={index}>
                                 <Icon 
@@ -40,10 +40,10 @@ class ListHeader extends Component {
                             </Grid.Column>
                         )
                     }
-                    else if(item.key === "makeName" || item.key === "makeAbrv"){
+                    else if(item.type === "inputOrText"){
                         return (
                             <Grid.Column key={index}>
-                                {this.props.filter === "" ?
+                                {this.props.filter !== -1 ?
                                 <Button 
                                     compact
                                     onClick={() => this.props.sortItems(item.key)}

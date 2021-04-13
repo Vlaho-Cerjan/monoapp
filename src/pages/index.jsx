@@ -2,8 +2,8 @@ import React from 'react'
 import { inject, observer } from 'mobx-react'
 import { action, makeObservable, observable } from 'mobx'
 
-import makeService from '../services/MakeService'
-import modelService from '../services/ModelService'
+import MakeService from '../services/MakeService'
+import ModelService from '../services/ModelService'
 
 import ListHeader from '../components/ListHeader/ListHeader'
 import ListItems from '../components/ListItems/ListsItems'
@@ -40,11 +40,11 @@ class HomePage extends React.Component {
             sortItems: action
         });
 
-        this.list = modelService.getListItems(this.props.vehicleStore);
+        this.list = ModelService.getListItems();
         this.dataList = [...this.list];
         this.pageCount = Math.ceil(this.dataList.length/this.perCount);
         this.viewList = this.list.slice(this.offset, this.offset+this.perCount);
-        this.props.vehicleStore.sortConfig.initialValue("makeName");
+        this.sortConfig = listService.setSortConfig("makeName");
     }
 
     handlePageClick = (data) => {
@@ -57,8 +57,9 @@ class HomePage extends React.Component {
         if(data.value !== ""){
             if(this.paginateRef.current) this.paginateRef.current.state.selected = 0;
             this.offset = 0;
-            this.filter = makeService.getMakeName(this.props.vehicleStore, data.value);
-            this.dataList = modelService.getFilteredList(this.list, data.value);
+            this.filter = MakeService.getMakeName(data.value);
+            this.dataList = ModelService.getFilteredList(data.value);
+            this.dataList = listService.sortItems([...this.dataList]);
             this.viewList = this.dataList.slice(this.offset, this.offset+this.perCount); 
             this.pageCount = Math.ceil(this.dataList.length/this.perCount);
         }
@@ -68,29 +69,33 @@ class HomePage extends React.Component {
         this.filter = "";
         if(this.paginateRef.current) this.paginateRef.current.state.selected = 0;
         if(this.dropdownRef.current) this.dropdownRef.current.clearValue();
-        this.dataList = modelService.getListItems(this.props.vehicleStore);
+        this.dataList = ModelService.getListItems();
         this.viewList = this.list.slice(this.offset, this.offset+this.perCount);
         this.pageCount = Math.ceil(this.dataList.length/this.perCount);
     }
 
     sortItems = key => {
         let direction = 'ascending';
-        if (this.props.vehicleStore.sortConfig && this.props.vehicleStore.sortConfig.key === key && this.props.vehicleStore.sortConfig.direction === 'ascending') {
+        if (this.sortConfig.key === key && this.sortConfig.direction === 'ascending') {
             direction = 'descending';
         }
         
-        this.props.vehicleStore.sortConfig.edit(key, direction);
-        this.list = this.props.vehicleStore.sortItems(this.list);
+        this.sortConfig = listService.setSortConfig(key, direction);
+        this.list = listService.sortItems([...this.list]);
 
-        if(this.dropdownRef.current.state.value !== "") this.dataList = modelService.getFilteredList(this.list, this.dropdownRef.current.state.value);
+        if(this.dropdownRef.current.state.value !== "") {
+            this.dataList = ModelService.getFilteredList(this.dropdownRef.current.state.value);
+            this.dataList = listService.sortItems([...this.dataList]);
+
+        }
         else this.dataList = [...this.list];
         this.viewList = this.dataList.slice(this.offset, this.offset+this.perCount);
     }
 
     render() {
         const headerItems = [ 
-            {key: "makeName", title: "Make Name", type: 'input'},
-            {key: "makeAbrv", title: "Make Abbreviation", type: 'input'},
+            {key: "makeName", title: "Make Name", type: 'inputOrText'},
+            {key: "makeAbrv", title: "Make Abbreviation", type: 'inputOrText'},
             {key: "modelName", title: "Model Name", type: 'input'},
             {key: "modelAbrv", title: "Model Abbreviation", type: 'input'}
         ];
@@ -117,7 +122,7 @@ class HomePage extends React.Component {
                         placeholder='Car Brand' 
                         search 
                         selection 
-                        options={makeService.getMakeBrandList(this.props.vehicleStore)} 
+                        options={MakeService.getMakeBrandListWithDataOnly()} 
                         onChange={this.filterBrand}
                     />
                     {button}
@@ -134,7 +139,7 @@ class HomePage extends React.Component {
                         textAlign="center"    
                 >
                     <ListHeader 
-                        sortConfig = {this.props.vehicleStore.sortConfig}
+                        sortConfig = {this.sortConfig}
                         sortItems = {this.sortItems}
                         getClassNames = {listService.getClassNamesFor}
                         headerList = {headerItems}
@@ -164,4 +169,4 @@ class HomePage extends React.Component {
     }
 }
   
-export default inject("vehicleStore")(observer(HomePage)); 
+export default observer(HomePage); 

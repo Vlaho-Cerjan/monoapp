@@ -1,13 +1,12 @@
 import React, { Component } from 'react'
 
-import { Grid, Input, Button } from 'semantic-ui-react'
+import { Grid, Input, Button, Dropdown } from 'semantic-ui-react'
 
-class CreateMakeRow extends Component {
+class CreateModelRow extends Component {
     constructor(props){
         super(props);
 
         this.makeNameRef = React.createRef();
-        this.makeAbrvRef = React.createRef();
         this.modelNameRef = React.createRef();
         this.modelAbrvRef = React.createRef();
     }
@@ -17,22 +16,15 @@ class CreateMakeRow extends Component {
         return(
             <Grid.Row key="createRow">  
                 <Grid.Column>
-                    <Input 
+                    <Dropdown 
+                        className="dropdown"
+                        placeholder={"Select Brand"}
+                        selection 
                         ref={this.makeNameRef}
-                        placeholder={"Make Name"}
+                        options={this.props.brandOptions} 
                         className={"grid-input makeName"}
                         onChange={(e, data) => {
-                            this.props.formData["makeName"] = data.value
-                        }}
-                    />
-                </Grid.Column>
-                <Grid.Column>
-                    <Input 
-                        ref={this.makeAbrvRef}
-                        placeholder={"Make Abbreviation"}
-                        className={"grid-input makeAbrv"}
-                        onChange={(e, data) => {
-                            this.props.formData["makeAbrv"] = data.value
+                            this.props.formData["makeId"] = data.value
                         }}
                     />
                 </Grid.Column>
@@ -60,8 +52,7 @@ class CreateMakeRow extends Component {
                     <Button
                         onClick={() => {
                             this.props.createDataHandler();
-                            if(this.makeNameRef) this.makeNameRef.current.inputRef.current.value = "";
-                            if(this.makeAbrvRef) this.makeAbrvRef.current.inputRef.current.value = "";
+                            if(this.makeNameRef) this.makeNameRef.current.clearValue();
                             if(this.modelNameRef) this.modelNameRef.current.inputRef.current.value = "";
                             if(this.modelAbrvRef) this.modelAbrvRef.current.inputRef.current.value = "";
                             this.props.closeCreate();
@@ -75,8 +66,7 @@ class CreateMakeRow extends Component {
                     <Button
                         color="google plus"
                         onClick={() => {
-                            if(this.makeNameRef) this.makeNameRef.current.inputRef.current.value = "";
-                            if(this.makeAbrvRef) this.makeAbrvRef.current.inputRef.current.value = "";
+                            if(this.makeNameRef) this.makeNameRef.current.clearValue();
                             if(this.modelNameRef) this.modelNameRef.current.inputRef.current.value = "";
                             if(this.modelAbrvRef) this.modelAbrvRef.current.inputRef.current.value = "";
                             this.props.closeCreate();
@@ -91,4 +81,4 @@ class CreateMakeRow extends Component {
     }
 }
 
-export default CreateMakeRow;
+export default CreateModelRow;

@@ -27,7 +27,7 @@ class ListMakeItem extends Component {
                         disabled={this.props.isReadOnly.data.find(data => data.id === this.props.id).state}
                         className={this.props.isReadOnly.data.find(data => data.id === this.props.id).state ? "grid-input makeName readOnly" : "grid-input makeName"}
                         onChange={(e, data) => {
-                            this.formData["makeId"] = data.value
+                            this.props.formData["makeId"] = data.value
                         }}
                     />       
                 </Grid.Column>
@@ -47,7 +47,7 @@ class ListMakeItem extends Component {
                 </Grid.Column>
                 <Grid.Column>
                     <Input 
-                        ref = {this.makeAbrvRef}
+                        ref = {this.modelAbrvRef}
                         defaultValue={this.props.modelNameAbrv}
                         readOnly={this.props.isReadOnly.data.find(data => data.id === this.props.id).state}
                         className={this.props.isReadOnly.data.find(data => data.id === this.props.id).state ? "grid-input modelAbrv readOnly" : "grid-input modelAbrv"}
@@ -68,8 +68,7 @@ class ListMakeItem extends Component {
                                 color="google plus"
                                 onClick={() => {
                                         this.props.cancelHandler();
-                                        if(this.makeNameRef) this.makeNameRef.current.inputRef.current.value = this.makeNameRef.current.props.defaultValue;
-                                        if(this.makeAbrvRef) this.makeAbrvRef.current.inputRef.current.value = this.makeAbrvRef.current.props.defaultValue;
+                                        if(this.makeNameRef) this.makeNameRef.current.state.value = this.props.makeId;
                                         if(this.modelNameRef) this.modelNameRef.current.inputRef.current.value = this.modelNameRef.current.props.defaultValue;
                                         if(this.modelAbrvRef) this.modelAbrvRef.current.inputRef.current.value = this.modelAbrvRef.current.props.defaultValue;
                                     }

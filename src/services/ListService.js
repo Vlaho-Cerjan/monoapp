@@ -1,16 +1,32 @@
 class ListService {
-    getClassNamesFor = (name, sortConfig) => {
-        if (!sortConfig) {
-          return;
-        }
-        return sortConfig.key === name ? sortConfig.direction : null;
+    constructor(){
+
+        this.sortConfig = {
+            key : "",
+            direction : "ascending"
+        };
+    }
+
+    getSortConfig = () => {
+        return this.sortConfig;
+    }
+
+    setSortConfig = (key, direction = null) => {
+        this.sortConfig.key = key;
+        if(direction !== null) this.sortConfig.direction = direction;
+
+        return this.sortConfig;
+    }
+
+    getClassNamesFor = (name) => {
+        return this.sortConfig.key === name ? this.sortConfig.direction : null;
     };
 
-    sortItems = (list, storeConfig) => {
+    sortItems = (list) => {
         let sortableItems = [...list];
-        if (storeConfig.key !== "") {
-            let key = storeConfig.key;
-            let dir = storeConfig.direction;
+        if (this.sortConfig.key !== "") {
+            let key = this.sortConfig.key;
+            let dir = this.sortConfig.direction;
 
             sortableItems.sort((a, b) => {
                 if (a[key].toLowerCase() < b[key].toLowerCase()) {
