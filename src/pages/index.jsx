@@ -19,7 +19,7 @@ class HomePage extends React.Component {
     offset = 0;
     dataList = [];
     viewList = [];
-    filter = "";
+    filter = -1;
 
     constructor(props){
         super(props);
@@ -44,7 +44,8 @@ class HomePage extends React.Component {
         this.dataList = [...this.list];
         this.pageCount = Math.ceil(this.dataList.length/this.perCount);
         this.viewList = this.list.slice(this.offset, this.offset+this.perCount);
-        this.sortConfig = listService.setSortConfig("makeName");
+        this.sortConfig = listService.setSortConfig("makeName", "ascending");
+        this.list = listService.sortItems([...this.list]);
     }
 
     handlePageClick = (data) => {
@@ -101,7 +102,7 @@ class HomePage extends React.Component {
         ];
 
         let button;
-        if(this.filter !== ""){
+        if(this.filter !== -1){
             button = 
                 <Button 
                     onClick={this.clearFilter}

@@ -3,7 +3,7 @@ class ListService {
 
         this.sortConfig = {
             key : "",
-            direction : "ascending"
+            direction : ""
         };
     }
 

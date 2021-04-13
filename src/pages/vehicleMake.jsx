@@ -22,7 +22,7 @@ class vehicleMake extends React.Component {
     offset = 0;
     dataList = [];
     viewList = [];
-    filter = 1;
+    filter = -1;
     isReadOnly = {
       data: []
     };
@@ -66,10 +66,11 @@ class vehicleMake extends React.Component {
         this.list.map((data) => 
             this.isReadOnly.data.push({id: data.id, state: true})
         )
+        this.sortConfig = listService.setSortConfig("makeName", "ascending");
+        this.list = listService.sortItems([...this.list]);
         this.dataList = [...this.list];
         this.pageCount = Math.ceil(this.dataList.length/this.perCount);
         this.viewList = this.list.slice(this.offset, this.offset+this.perCount);
-        this.sortConfig = listService.setSortConfig("makeName");
     }
 
     handlePageClick = (data) => {

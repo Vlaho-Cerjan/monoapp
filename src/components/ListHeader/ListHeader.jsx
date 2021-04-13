@@ -43,7 +43,7 @@ class ListHeader extends Component {
                     else if(item.type === "inputOrText"){
                         return (
                             <Grid.Column key={index}>
-                                {this.props.filter !== -1 ?
+                                {this.props.filter === -1 ?
                                 <Button 
                                     compact
                                     onClick={() => this.props.sortItems(item.key)}

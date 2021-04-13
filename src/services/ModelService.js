@@ -65,8 +65,9 @@ class ModelService{
             {
                 id: new_id,
                 makeId: formData.makeId,
-                name: formData.makeName,
-                abrv: formData.makeAbrv
+                name: formData.modelName,
+                abrv: formData.modelAbrv,
+                active: 1
             }
         )
 

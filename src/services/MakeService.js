@@ -74,7 +74,8 @@ class MakeService{
             {
                 id: new_id,
                 name: formData.makeName,
-                abrv: formData.makeAbrv
+                abrv: formData.makeAbrv,
+                active: 1
             }
         )
 
