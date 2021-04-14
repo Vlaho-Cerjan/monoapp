@@ -40,7 +40,7 @@ class HomePage extends React.Component {
             sortItems: action
         });
 
-        this.dataList = ModelService.getListItems(MakeService.getAllMakes());
+        this.dataList = ModelService.getListItems();
         this.pageCount = Math.ceil(this.dataList.length/this.perCount);
         this.viewList = this.dataList.slice(this.offset, this.offset+this.perCount);
         this.sortConfig = listService.setSortConfig("makeName", "ascending");
@@ -58,7 +58,7 @@ class HomePage extends React.Component {
             if(this.paginateRef.current) this.paginateRef.current.state.selected = 0;
             this.offset = 0;
             this.filter = MakeService.getMakeName(data.value);
-            this.dataList = ModelService.getFilteredList(data.value, MakeService.getAllMakes());
+            this.dataList = ModelService.getFilteredList(data.value);
             this.dataList = listService.sortItems([...this.dataList]);
             this.viewList = this.dataList.slice(this.offset, this.offset+this.perCount); 
             this.pageCount = Math.ceil(this.dataList.length/this.perCount);
@@ -83,7 +83,7 @@ class HomePage extends React.Component {
         this.sortConfig = listService.setSortConfig(key, direction);
 
         if(this.dropdownRef.current.state.value !== "") {
-            this.dataList = ModelService.getFilteredList(this.dropdownRef.current.state.value, MakeService.getAllMakes());
+            this.dataList = ModelService.getFilteredList(this.dropdownRef.current.state.value);
         }
         this.dataList = listService.sortItems([...this.dataList]);
         this.viewList = this.dataList.slice(this.offset, this.offset+this.perCount);
@@ -119,7 +119,7 @@ class HomePage extends React.Component {
                         placeholder='Car Brand' 
                         search 
                         selection 
-                        options={MakeService.getMakeBrandListWithDataOnly(ModelService.getAllModels())} 
+                        options={MakeService.getMakeBrandListWithDataOnly()} 
                         onChange={this.filterBrand}
                     />
                     {button}

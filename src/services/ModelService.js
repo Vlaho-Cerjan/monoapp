@@ -11,9 +11,8 @@ class ModelService{
         return this.models;
     }
 
-    getListItems = (makes) => {
+    getListItems = () => {
         const items = [];
-        if(makes) this.makes = [...makes]
         this.models.map((model) => {
             items.push({
                     id : model.id,
@@ -28,9 +27,8 @@ class ModelService{
         return items;
     }
 
-    getFilteredList = (brand, makes) => {
+    getFilteredList = (brand) => {
         const items = [];
-        if(makes) this.makes = [...makes]
         this.models.map((model) => {
             if(model.makeId === brand){
             items.push({
@@ -45,6 +43,10 @@ class ModelService{
         });
         
         return items;
+    }
+
+    updateMakes = (makes) => {
+        this.makes = makes;
     }
 
     remove = (id) => {

@@ -5,6 +5,7 @@ class MakeService{
 
         this.store = getStore();
         this.makes = [...this.store.makes];
+        this.models = [...this.store.models];
     }
 
     getAllMakes = () => {
@@ -37,9 +38,9 @@ class MakeService{
         return items;
     }
 
-    getMakeBrandListWithDataOnly = (models) => {
+    getMakeBrandListWithDataOnly = () => {
         const items = [];
-        this.makes.filter(make => models.filter(model => model.makeId === make.id).length > 0).map((make) => {
+        this.makes.filter(make => this.models.filter(model => model.makeId === make.id).length > 0).map((make) => {
             items.push({   
                 key: make.id,
                 text: make.name,
@@ -52,6 +53,10 @@ class MakeService{
 
     getMakeName = (id) => {
         return this.makes.find(make => make.id === id).name;
+    }
+
+    updateModels = (models) => {
+        this.models = models;
     }
 
     remove = (id) => {

@@ -3,6 +3,7 @@ import { observer } from 'mobx-react';
 import { action, makeObservable, observable } from 'mobx';
 
 import MakeService from '../services/MakeService';
+import ModelService from '../services/ModelService';
 
 import ListHeader from '../components/ListHeader/ListHeader';
 import ListsMakeItems from '../components/ListMakeItems/ListsMakeItems';
@@ -14,6 +15,7 @@ import { Grid, Divider } from 'semantic-ui-react';
 import { withAlert } from 'react-alert';
 import CreateModal from '../components/CreateModal/CreateModal';
 import CreateMakeRow from '../components/CreateModal/CreateRow/CreateMakeRow';
+
 
 
 
@@ -125,6 +127,7 @@ class vehicleMake extends React.Component {
       this.isReadOnly.data.map((data) => data.state = true);
       this.props.alert.show('Car make '+makeName+' has been edited.', { type: 'success'});
       this.resetFormData();
+      ModelService.updateMakes(MakeService.getAllMakes());
     }
 
     deleteDataHandler = (id) => {
@@ -140,6 +143,7 @@ class vehicleMake extends React.Component {
         this.handlePageClick(data);
         this.paginateRef.current.state.selected = data.selected;
       }
+      ModelService.updateMakes(MakeService.getAllMakes());
     }
 
     openCreate = () => {
@@ -165,6 +169,7 @@ class vehicleMake extends React.Component {
       this.props.alert.show('Car make '+this.formData.makeName+' has been created.', { type: 'success'});
       this.resetFormData();
       this.isCreateOpen = false;
+      ModelService.updateMakes(MakeService.getAllMakes());
     }
     
 
