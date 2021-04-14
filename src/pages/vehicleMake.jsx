@@ -1,19 +1,21 @@
-import React from 'react'
-import { observer } from 'mobx-react'
-import { action, makeObservable, observable } from 'mobx'
+import React from 'react';
+import { observer } from 'mobx-react';
+import { action, makeObservable, observable } from 'mobx';
 
-import ListHeader from '../components/ListHeader/ListHeader'
-import ListsMakeItems from '../components/ListMakeItems/ListsMakeItems'
-import listService from '../services/ListService'
-import ReactPaginate from 'react-paginate'
+import MakeService from '../services/MakeService';
 
-import { Grid, Divider } from 'semantic-ui-react'
+import ListHeader from '../components/ListHeader/ListHeader';
+import ListsMakeItems from '../components/ListMakeItems/ListsMakeItems';
+import listService from '../services/ListService';
+import ReactPaginate from 'react-paginate';
 
-import { withAlert } from 'react-alert'
-import CreateModal from '../components/CreateModal/CreateModal'
-import CreateMakeRow from '../components/CreateModal/CreateRow/CreateMakeRow'
+import { Grid, Divider } from 'semantic-ui-react';
 
-import MakeService from '../services/MakeService'
+import { withAlert } from 'react-alert';
+import CreateModal from '../components/CreateModal/CreateModal';
+import CreateMakeRow from '../components/CreateModal/CreateRow/CreateMakeRow';
+
+
 
 class vehicleMake extends React.Component {
     list = [];
@@ -62,15 +64,14 @@ class vehicleMake extends React.Component {
             createDataHandler: action
         });
 
-        this.list = MakeService.getMakeList();
-        this.list.map((data) => 
+        this.dataList = MakeService.getMakeList();
+        this.dataList.map((data) => 
             this.isReadOnly.data.push({id: data.id, state: true})
-        )
+        );
         this.sortConfig = listService.setSortConfig("makeName", "ascending");
-        this.list = listService.sortItems([...this.list]);
-        this.dataList = [...this.list];
+        this.dataList = listService.sortItems([...this.dataList]);
         this.pageCount = Math.ceil(this.dataList.length/this.perCount);
-        this.viewList = this.list.slice(this.offset, this.offset+this.perCount);
+        this.viewList = this.dataList.slice(this.offset, this.offset+this.perCount);
     }
 
     handlePageClick = (data) => {
@@ -86,8 +87,7 @@ class vehicleMake extends React.Component {
         }
         
         this.sortConfig = listService.setSortConfig(key, direction);
-        this.list = listService.sortItems([...this.list]);
-        this.dataList = [...this.list];
+        this.dataList = listService.sortItems([...this.dataList]);
         this.viewList = this.dataList.slice(this.offset, this.offset+this.perCount);
     }
 
@@ -112,16 +112,15 @@ class vehicleMake extends React.Component {
     }
 
     editDataHandler = (id) => {
-      let item = this.list.find(item => item.id === id);
-      let makeName = this.formData.makeName !== "" ? this.formData.makeName : item.makeName
-      let itemList = this.list.filter(item => item.id !== id);
+      let item = this.dataList.find(item => item.id === id);
+      let makeName = this.formData.makeName !== "" ? this.formData.makeName : item.makeName;
+      let itemList = this.dataList.filter(item => item.id !== id);
       if(itemList.find(item => item.makeName === makeName)) {
           this.props.alert.show('Unable to edit '+makeName+'! Another care make of this name already exists!', { type: 'error'});
           return;
-      }
-      this.list = MakeService.edit(id, this.formData);
-      this.list = listService.sortItems(this.list);
-      this.dataList = [...this.list];
+      };
+      this.dataList = MakeService.edit(id, this.formData);
+      this.dataList = listService.sortItems(this.dataList);
       this.viewList = this.dataList.slice(this.offset, this.offset+this.perCount);
       this.isReadOnly.data.map((data) => data.state = true);
       this.props.alert.show('Car make '+makeName+' has been edited.', { type: 'success'});
@@ -129,17 +128,16 @@ class vehicleMake extends React.Component {
     }
 
     deleteDataHandler = (id) => {
-      let item = this.list.find(data => data.id === id);
-      this.list = MakeService.remove(id);
-      this.pageCount = Math.ceil(this.list.length/this.perCount);
-      this.dataList = [...this.list];
+      let item = this.dataList.find(data => data.id === id);
+      this.dataList = MakeService.remove(id);
+      this.pageCount = Math.ceil(this.dataList.length/this.perCount);
       this.viewList = this.dataList.slice(this.offset, this.offset+this.perCount);
       this.props.alert.show('Car make '+item.makeName+' has been deleted.', { type: 'info'});
       if(this.paginateRef.current.state.selected > this.pageCount-1) {
         let data = {
           selected: this.paginateRef.current.state.selected-1
-        }
-        this.handlePageClick(data)
+        };
+        this.handlePageClick(data);
         this.paginateRef.current.state.selected = data.selected;
       }
     }
@@ -153,21 +151,20 @@ class vehicleMake extends React.Component {
     }
 
     createDataHandler = () => {
-      if(this.list.find(item => item.makeName === this.formData.makeName)) {
-        this.data.alert.show('Unable to create '+this.formData.makeName+'! The car make already exists!', { type: 'error'})
-        return 
+      if(this.dataList.find(item => item.makeName === this.formData.makeName)) {
+        this.data.alert.show('Unable to create '+this.formData.makeName+'! The car make already exists!', { type: 'error'});
+        return;
       }
 
       let id = 0;
-      [this.list, id] = makeService.add(this.formData)
-      this.pageCount = Math.ceil(this.list.length/this.perCount)
-      this.isReadOnly.data.push({id: id, state: true})
-      this.list = listService.sortItems(this.list);
-      this.dataList = [...this.list];
+      [this.dataList, id] = MakeService.add(this.formData);
+      this.pageCount = Math.ceil(this.dataList.length/this.perCount);
+      this.isReadOnly.data.push({id: id, state: true});
+      this.dataList = listService.sortItems(this.dataList);
       this.viewList = this.dataList.slice(this.offset, this.offset+this.perCount);
-      this.props.alert.show('Car make '+this.formData.makeName+' has been created.', { type: 'success'})
-      this.resetFormData()
-      this.isCreateOpen = false
+      this.props.alert.show('Car make '+this.formData.makeName+' has been created.', { type: 'success'});
+      this.resetFormData();
+      this.isCreateOpen = false;
     }
     
 

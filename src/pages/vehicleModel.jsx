@@ -1,20 +1,21 @@
-import React from 'react'
-import { observer } from 'mobx-react'
-import { action, makeObservable, observable } from 'mobx'
+import React from 'react';
+import { observer } from 'mobx-react';
+import { action, makeObservable, observable } from 'mobx';
 
-import MakeService from '../services/MakeService'
+import MakeService from '../services/MakeService';
+import ModelService from '../services/ModelService';
 
-import ListHeader from '../components/ListHeader/ListHeader'
-import ListModelItems from '../components/ListModelItems/ListModelItems'
-import listService from '../services/ListService'
-import ReactPaginate from 'react-paginate'
+import ListHeader from '../components/ListHeader/ListHeader';
+import ListModelItems from '../components/ListModelItems/ListModelItems';
+import listService from '../services/ListService';
+import ReactPaginate from 'react-paginate';
 
-import { Grid, Divider, Container, Dropdown, Button } from 'semantic-ui-react'
+import { Grid, Divider, Container, Dropdown, Button } from 'semantic-ui-react';
 
-import { withAlert } from 'react-alert'
-import CreateModal from '../components/CreateModal/CreateModal'
-import CreateModelRow from '../components/CreateModal/CreateRow/CreateModelRow'
-import ModelService from '../services/ModelService'
+import { withAlert } from 'react-alert';
+import CreateModal from '../components/CreateModal/CreateModal';
+import CreateModelRow from '../components/CreateModal/CreateRow/CreateModelRow';
+
 
 
 class vehicleModel extends React.Component {
@@ -27,14 +28,14 @@ class vehicleModel extends React.Component {
     filter = -1;
     isReadOnly = {
       data: []
-    }
+    };
     formData = {
       id: 0,
       makeId: 0,
       modelName: "",
       modelAbrv: "",
-    }
-    isCreateOpen = false
+    };
+    isCreateOpen = false;
 
     constructor(props){
         super(props);
@@ -64,16 +65,14 @@ class vehicleModel extends React.Component {
             filterBrand: action,
             clearFilter: action
         });
-
-        this.list = ModelService.getListItems();
-        this.list.map((data) => 
+        this.dataList = ModelService.getListItems(MakeService.getAllMakes());
+        this.dataList.map((data) => 
             this.isReadOnly.data.push({id: data.id, state: true})
-        )
+        );
         this.sortConfig = listService.setSortConfig("makeName", "ascending");
-        this.list = listService.sortItems([...this.list]);
-        this.dataList = [...this.list];
+        this.dataList = listService.sortItems([...this.dataList]);
         this.pageCount = Math.ceil(this.dataList.length/this.perCount);
-        this.viewList = this.list.slice(this.offset, this.offset+this.perCount);
+        this.viewList = this.dataList.slice(this.offset, this.offset+this.perCount);
         
     }
 
@@ -90,12 +89,11 @@ class vehicleModel extends React.Component {
         }
         
         this.sortConfig = listService.setSortConfig(key, direction);
-        this.list = listService.sortItems([...this.list]);
         if(this.filter !== -1) {
-           this.dataList = ModelService.getFilteredList(this.filter);
-           this.dataList = listService.sortItems([...this.dataList]);
+           this.dataList = ModelService.getFilteredList(this.filter, MakeService.getAllMakes());
+           
         }
-        else this.dataList = [...this.list];
+        this.dataList = listService.sortItems([...this.dataList]);
         this.viewList = this.dataList.slice(this.offset, this.offset+this.perCount);
     }
 
@@ -121,20 +119,16 @@ class vehicleModel extends React.Component {
     }
 
     editDataHandler = (id) => {
-      let item = this.list.find(item => item.id === id);
-      let modelName = this.formData.modelName !== "" ? this.formData.modelName : item.modelName
-      let itemList = this.list.filter(item => item.id !== id);
+      let item = this.dataList.find(item => item.id === id);
+      let modelName = this.formData.modelName !== "" ? this.formData.modelName : item.modelName;
+      let itemList = this.dataList.filter(item => item.id !== id);
       if(itemList.find(item => item.modelName === modelName)) {
           this.props.alert.show('Unable to edit '+modelName+'! Another care model of this name already exists!', { type: 'error'});
           return;
       }
-      this.list = ModelService.edit(id, this.formData);
-      this.list = listService.sortItems([...this.list]);
-      if(this.filter !== -1) {
-        this.dataList = ModelService.getFilteredList(this.filter);
-        this.dataList = listService.sortItems([...this.dataList]);
-      }
-      else this.dataList = [...this.list];
+      this.dataList = ModelService.edit(id, this.formData);
+      if(this.filter !== -1) this.dataList = ModelService.getFilteredList(this.filter, MakeService.getAllMakes());
+      this.dataList = listService.sortItems([...this.dataList]);
       this.viewList = this.dataList.slice(this.offset, this.offset+this.perCount);
       this.isReadOnly.data.map((data) => data.state = true);
       this.props.alert.show('Car model '+modelName+' has been edited.', { type: 'success'});
@@ -142,22 +136,18 @@ class vehicleModel extends React.Component {
     }
 
     deleteDataHandler = (id) => {
-      let item = this.list.find(data => data.id === id);
-      this.list = ModelService.remove(id);
-      this.list = listService.sortItems([...this.list]);
-      if(this.filter !== -1) {
-        this.dataList = ModelService.getFilteredList(this.filter);
-        this.dataList = listService.sortItems([...this.dataList]);
-      }
-      else this.dataList = [...this.list];
+      let item = this.dataList.find(data => data.id === id);
+      this.dataList = ModelService.remove(id);
+      if(this.filter !== -1) this.dataList = ModelService.getFilteredList(this.filter, MakeService.getAllMakes());
+      this.dataList = listService.sortItems([...this.dataList]);
       this.pageCount = Math.ceil(this.dataList.length/this.perCount);
       this.viewList = this.dataList.slice(this.offset, this.offset+this.perCount);
       this.props.alert.show('Car model '+item.modelName+' has been deleted.', { type: 'info'});
       if(this.paginateRef.current.state.selected > this.pageCount-1) {
         let data = {
           selected: this.paginateRef.current.state.selected-1
-        }
-        this.handlePageClick(data)
+        };
+        this.handlePageClick(data);
         this.paginateRef.current.state.selected = this.paginateRef.current.state.selected-1;
       }
       
@@ -172,26 +162,22 @@ class vehicleModel extends React.Component {
     }
 
     createDataHandler = () => {
-      if(this.list.find(item => item.modelName === this.formData.modelName && item.makeId === this.formData.makeId)) {
-        this.props.alert.show('Unable to create '+this.formData.modelName+'! The car model already exists!', { type: 'error'})
-        return 
+      if(this.dataList.find(item => item.modelName === this.formData.modelName && item.makeId === this.formData.makeId)) {
+        this.props.alert.show('Unable to create '+this.formData.modelName+'! The car model already exists!', { type: 'error'});
+        return;
       }
 
       let id = 0;
-      [this.list, id] = ModelService.add(this.formData)
+      [this.dataList, id] = ModelService.add(this.formData);
       
-      this.isReadOnly.data.push({id: id, state: true})
-      this.list = listService.sortItems(this.list);
-      if(this.filter !== -1) {
-        this.dataList = ModelService.getFilteredList(this.filter);
-        this.dataList = listService.sortItems(this.dataList);
-      }
-      else this.dataList = [...this.list];
-      this.pageCount = Math.ceil(this.dataList.length/this.perCount)
+      this.isReadOnly.data.push({id: id, state: true});
+      if(this.filter !== -1) this.dataList = ModelService.getFilteredList(this.filter, MakeService.getAllMakes());
+      this.dataList = listService.sortItems(this.dataList);
+      this.pageCount = Math.ceil(this.dataList.length/this.perCount);
       this.viewList = this.dataList.slice(this.offset, this.offset+this.perCount);
-      this.props.alert.show('Car model '+this.formData.modelName+' has been created.', { type: 'success'})
-      this.resetFormData()
-      this.isCreateOpen = false
+      this.props.alert.show('Car model '+this.formData.modelName+' has been created.', { type: 'success'});
+      this.resetFormData();
+      this.isCreateOpen = false;
     }
 
     filterBrand = (e, data) => {
@@ -199,7 +185,7 @@ class vehicleModel extends React.Component {
           if(this.paginateRef.current) this.paginateRef.current.state.selected = 0;
           this.offset = 0;
           this.filter = data.value;
-          this.dataList = ModelService.getFilteredList(data.value);
+          this.dataList = ModelService.getFilteredList(data.value, MakeService.getAllMakes());
           if(this.filter !== -1) this.dataList = listService.sortItems(this.dataList);
           this.viewList = this.dataList.slice(this.offset, this.offset+this.perCount); 
           this.pageCount = Math.ceil(this.dataList.length/this.perCount);
@@ -210,8 +196,8 @@ class vehicleModel extends React.Component {
       this.filter = -1;
       if(this.paginateRef.current) this.paginateRef.current.state.selected = 0;
       if(this.dropdownRef.current) this.dropdownRef.current.clearValue();
-      this.dataList = ModelService.getListItems();
-      this.viewList = this.list.slice(this.offset, this.offset+this.perCount);
+      this.dataList = ModelService.getListItems(MakeService.getAllMakes());
+      this.viewList = this.dataList.slice(this.offset, this.offset+this.perCount);
       this.pageCount = Math.ceil(this.dataList.length/this.perCount);
     }
     

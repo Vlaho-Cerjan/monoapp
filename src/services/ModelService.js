@@ -2,18 +2,18 @@ import { getStore } from "../stores/VehicleStore";
 
 class ModelService{
     constructor(){
-
         this.store = getStore();
-        this.makes = [...this.store.makes]
-        this.models = [...this.store.models]
+        this.models = [...this.store.models];
+        this.makes = [...this.store.makes];
     }
 
     getAllModels = () => {
-        return this.models
+        return this.models;
     }
 
-    getListItems = () => {
-        const items = []
+    getListItems = (makes) => {
+        const items = [];
+        if(makes) this.makes = [...makes]
         this.models.map((model) => {
             items.push({
                     id : model.id,
@@ -24,12 +24,13 @@ class ModelService{
                     modelAbrv : model.abrv
                 }
             )
-        })
-        return items
+        });
+        return items;
     }
 
-    getFilteredList = (brand) => {
-        const items = []
+    getFilteredList = (brand, makes) => {
+        const items = [];
+        if(makes) this.makes = [...makes]
         this.models.map((model) => {
             if(model.makeId === brand){
             items.push({
@@ -41,7 +42,7 @@ class ModelService{
                     modelAbrv : model.abrv
                 });
             }
-        })
+        });
         
         return items;
     }
@@ -69,7 +70,7 @@ class ModelService{
                 abrv: formData.modelAbrv,
                 active: 1
             }
-        )
+        );
 
         return [this.getListItems(), new_id];
     }

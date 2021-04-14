@@ -1,16 +1,16 @@
-import React from 'react'
-import { inject, observer } from 'mobx-react'
-import { action, makeObservable, observable } from 'mobx'
+import React from 'react';
+import { observer } from 'mobx-react';
+import { action, makeObservable, observable } from 'mobx';
 
-import MakeService from '../services/MakeService'
-import ModelService from '../services/ModelService'
+import MakeService from '../services/MakeService';
+import ModelService from '../services/ModelService';
 
-import ListHeader from '../components/ListHeader/ListHeader'
-import ListItems from '../components/ListItems/ListsItems'
-import listService from '../services/ListService'
-import ReactPaginate from 'react-paginate'
+import ListHeader from '../components/ListHeader/ListHeader';
+import ListItems from '../components/ListItems/ListsItems';
+import listService from '../services/ListService';
+import ReactPaginate from 'react-paginate';
 
-import { Grid, Container, Dropdown, Divider, Button } from 'semantic-ui-react'
+import { Grid, Container, Dropdown, Divider, Button } from 'semantic-ui-react';
 
 class HomePage extends React.Component {
     list = [];
@@ -40,12 +40,11 @@ class HomePage extends React.Component {
             sortItems: action
         });
 
-        this.list = ModelService.getListItems();
-        this.dataList = [...this.list];
+        this.dataList = ModelService.getListItems(MakeService.getAllMakes());
         this.pageCount = Math.ceil(this.dataList.length/this.perCount);
-        this.viewList = this.list.slice(this.offset, this.offset+this.perCount);
+        this.viewList = this.dataList.slice(this.offset, this.offset+this.perCount);
         this.sortConfig = listService.setSortConfig("makeName", "ascending");
-        this.list = listService.sortItems([...this.list]);
+        this.dataList = listService.sortItems([...this.dataList]);
     }
 
     handlePageClick = (data) => {
@@ -59,7 +58,7 @@ class HomePage extends React.Component {
             if(this.paginateRef.current) this.paginateRef.current.state.selected = 0;
             this.offset = 0;
             this.filter = MakeService.getMakeName(data.value);
-            this.dataList = ModelService.getFilteredList(data.value);
+            this.dataList = ModelService.getFilteredList(data.value, MakeService.getAllMakes());
             this.dataList = listService.sortItems([...this.dataList]);
             this.viewList = this.dataList.slice(this.offset, this.offset+this.perCount); 
             this.pageCount = Math.ceil(this.dataList.length/this.perCount);
@@ -70,8 +69,8 @@ class HomePage extends React.Component {
         this.filter = "";
         if(this.paginateRef.current) this.paginateRef.current.state.selected = 0;
         if(this.dropdownRef.current) this.dropdownRef.current.clearValue();
-        this.dataList = ModelService.getListItems();
-        this.viewList = this.list.slice(this.offset, this.offset+this.perCount);
+        this.dataList = ModelService.getListItems(MakeService.getAllMakes());
+        this.viewList = this.dataList.slice(this.offset, this.offset+this.perCount);
         this.pageCount = Math.ceil(this.dataList.length/this.perCount);
     }
 
@@ -82,14 +81,11 @@ class HomePage extends React.Component {
         }
         
         this.sortConfig = listService.setSortConfig(key, direction);
-        this.list = listService.sortItems([...this.list]);
 
         if(this.dropdownRef.current.state.value !== "") {
-            this.dataList = ModelService.getFilteredList(this.dropdownRef.current.state.value);
-            this.dataList = listService.sortItems([...this.dataList]);
-
+            this.dataList = ModelService.getFilteredList(this.dropdownRef.current.state.value, MakeService.getAllMakes());
         }
-        else this.dataList = [...this.list];
+        this.dataList = listService.sortItems([...this.dataList]);
         this.viewList = this.dataList.slice(this.offset, this.offset+this.perCount);
     }
 
@@ -123,7 +119,7 @@ class HomePage extends React.Component {
                         placeholder='Car Brand' 
                         search 
                         selection 
-                        options={MakeService.getMakeBrandListWithDataOnly()} 
+                        options={MakeService.getMakeBrandListWithDataOnly(ModelService.getAllModels())} 
                         onChange={this.filterBrand}
                     />
                     {button}

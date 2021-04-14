@@ -20,7 +20,7 @@ class ListService {
 
     getClassNamesFor = (name) => {
         return this.sortConfig.key === name ? this.sortConfig.direction : null;
-    };
+    }
 
     sortItems = (list) => {
         let sortableItems = [...list];
@@ -44,4 +44,4 @@ class ListService {
 }
 
 const listService = new ListService();
-export default listService
+export default listService;

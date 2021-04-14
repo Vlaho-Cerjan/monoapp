@@ -4,8 +4,7 @@ class MakeService{
     constructor(){
 
         this.store = getStore();
-        this.makes = [...this.store.makes]
-        this.models = [...this.store.models]
+        this.makes = [...this.store.makes];
     }
 
     getAllMakes = () => {
@@ -13,7 +12,7 @@ class MakeService{
     }
 
     getMakeList = () => {
-        const items = []
+        const items = [];
         this.makes.map((make) => {
             items.push({
                     id: make.id,
@@ -21,12 +20,12 @@ class MakeService{
                     makeAbrv : make.abrv
                 }
             )
-        })
+        });
         return items;
     }
 
     getMakeBrandList = () => {
-        const items = []
+        const items = [];
         this.makes.map((make) => {
             items.push({   
                 key: make.id,
@@ -34,30 +33,30 @@ class MakeService{
                 value: make.id      
                 }
             )
-        })
+        });
         return items;
     }
 
-    getMakeBrandListWithDataOnly = () => {
-        const items = []
-        this.makes.filter(make => this.models.filter(model => model.makeId === make.id).length > 0).map((make) => {
+    getMakeBrandListWithDataOnly = (models) => {
+        const items = [];
+        this.makes.filter(make => models.filter(model => model.makeId === make.id).length > 0).map((make) => {
             items.push({   
                 key: make.id,
                 text: make.name,
                 value: make.id      
                 }
             )
-        })
+        });
         return items;
     }
 
     getMakeName = (id) => {
-        return this.makes.find(make => make.id === id).name
+        return this.makes.find(make => make.id === id).name;
     }
 
     remove = (id) => {
         let ind = this.makes.findIndex(make => make.id === id);
-        this.makes.splice(ind, 1)
+        this.makes.splice(ind, 1);
 
         return this.getMakeList();
     }
@@ -69,7 +68,7 @@ class MakeService{
     }
 
     add = (formData) => {
-        const new_id = Math.max(...this.makes.map(make => make.id))+1
+        const new_id = Math.max(...this.makes.map(make => make.id))+1;
         this.makes.push(
             {
                 id: new_id,
@@ -77,7 +76,7 @@ class MakeService{
                 abrv: formData.makeAbrv,
                 active: 1
             }
-        )
+        );
 
         return [this.getMakeList(), new_id];
     }

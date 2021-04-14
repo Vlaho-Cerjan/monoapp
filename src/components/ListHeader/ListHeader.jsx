@@ -1,5 +1,5 @@
-import React, { Component } from 'react'
-import { Grid, Button, Icon } from 'semantic-ui-react'
+import React, { Component } from 'react';
+import { Grid, Button, Icon } from 'semantic-ui-react';
 
 class ListHeader extends Component {
 
@@ -14,7 +14,7 @@ class ListHeader extends Component {
             dir =
                 <Icon
                     name="long arrow alternate down"
-                />
+                />;
         }
 
         return (
